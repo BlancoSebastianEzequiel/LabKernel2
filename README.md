@@ -10,19 +10,19 @@ Material de apoyo:
 * [Creación de stacks en el kernel](#creación-de-stacks-en-el-kernel)
   * [Ej: kern2-stack](#ej-kern2-stack)
   * [Ej: kern2-cmdline](#ej-kern2-cmdline)
-  * [Ej: kern2-meminfo ★](#ej-kern2-meminfo)
+  * [Ej: kern2-meminfo ★](#ej-kern2-meminfo-)
 * [Concurrencia cooperativa](#concurrencia-cooperativa)
   * [Ej: kern2-task](#ej-kern2-task)
   * [Ej: kern2-exec](#ej-kern2-exec)
   * [Ej: kern2-regcall](#ej-kern2-regcall)
   * [Ej: kern2-swap](#ej-kern2-swap)
-  * [Ej: kern2-exit ★](#ej-kern2-exit)
+  * [Ej: kern2-exit ★](#ej-kern2-exit-)
 * [Interrupciones: reloj y teclado](#interrupciones:-reloj-y-teclado)
   * [Ej: kern2-idt](#ej-kern2-idt)
   * [Ej: kern2-isr](#ej-kern2-isr)
   * [Ej: kern2-irq](#ej-kern2-irq)
   * [Ej: kern2-div](#ej-kern2-div)
-  * [Ej: kern2-kbd ★](#ej-kern2-kbd-★)
+  * [Ej: kern2-kbd ★](#ej-kern2-kbd-)
 
 
 
