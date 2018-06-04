@@ -17,7 +17,7 @@ Material de apoyo:
   * [Ej: kern2-regcall](#ej-kern2-regcall)
   * [Ej: kern2-swap](#ej-kern2-swap)
   * [Ej: kern2-exit ★](#ej-kern2-exit-)
-* [Interrupciones: reloj y teclado](#interrupciones:-reloj-y-teclado)
+* [Interrupciones: reloj y teclado](##interrupciones-reloj-y-teclado)
   * [Ej: kern2-idt](#ej-kern2-idt)
   * [Ej: kern2-isr](#ej-kern2-isr)
   * [Ej: kern2-irq](#ej-kern2-irq)
