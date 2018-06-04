@@ -7,16 +7,28 @@ Material de apoyo:
   - [multiboot.h](multiboot.h)
 
 ## Indice
-{:.no_toc}
+* [Creación de stacks en el kernel](#Creación-de-stacks-en-el-kernel)
+  * [Ej: kern2-stack](#kern2-stack)
+  * [Ej: kern2-cmdline](#kern2-cmdline)
+  * [Ej: kern2-meminfo ★](#kern2-meminfo)
+* [Concurrencia cooperativa](#Concurrencia-cooperativa)
+  * [Ej: kern2-task](#kern2-task)
+  * [Ej: kern2-exec](#kern2-exec)
+  * [Ej: kern2-regcall](#kern2-regcall)
+  * [Ej: kern2-swap](#kern2-swap)
+  * [Ej: kern2-exit ★](#kern2-exit)
+* [Interrupciones: reloj y teclado](#Interrupciones:-reloj-y-teclado)
+  * [Ej: kern2-idt](#kern2-idt)
+  * [Ej: kern2-isr](#kern2-isr)
+  * [Ej: kern2-irq](#kern2-irq)
+  * [Ej: kern2-div](#kern2-div)
+  * [Ej: kern2-kbd ★](#kern2-kbd ★)
 
-* TOC
-{:toc}
 
 
 ## Creacion de stacks en el kernel
-{: #kernstack}
 
-Cuando un programa se ejecuta, normalmente es el sistema operativo quien le configura el stack de manera adecuada, esto es: reserva un espacio en memoria (a menudo 4 u 8Â KiB) y apunta _%esp_ a dicha regiÃ³n (bien al lÃ­mite inferior, bien al superior, segÃºn la direcciÃ³n en que crece la pila en la arquitectura).
+Cuando un programa se ejecuta, normalmente es el sistema operativo quien le configura el stack de manera adecuada, esto es: reserva un espacio en memoria (a menudo 4 u 8Â KiB) y apunta _%esp_ a dicha region (bien al lÃ­mite inferior, bien al superior, segun la direccion en que crece la pila en la arquitectura).
 
 Un kernel, en cambio, es responsable de asignarse su propio _boot stack_ durante el proceso de arranque.
 
@@ -24,7 +36,6 @@ Por su parte, los programas de usuario tambiÃ©n pueden crearse pilas adicional
 
 
 ### Ej: kern2-stack
-{: #kern2-stack}
 
 - Lecturas obligatorias
 
@@ -134,7 +145,6 @@ Finalmente: mostrar en una sesion de GDB los valores de _%esp_ y _%eip_ al entra
 
 
 ### Ej: kern2-cmdline
-{: #ej-cmdline}
 
 - Lecturas obligatorias
 
@@ -221,9 +231,8 @@ Finalmente:
 [^linus]: Es por esto que Linus Torvalds, [en su estilo caracterÃ­stico][lkmlarr], recomienda siempre usar `char *buf` y nunca `char buf[â€‹]` en la declaracion de una funcion.
 
 #### Compiler includes
-{: #no-host-includes}
 
-En cÃ³digo del kernel no hay acceso a la biblioteca estandar de C, por lo que se debe incluir una implementacion de todas las funciones que se invocan.
+En codigo del kernel no hay acceso a la biblioteca estandar de C, por lo que se debe incluir una implementacion de todas las funciones que se invocan.
 
 Para codigo kernel, el compilador debera manejar las directivas _include_ de la siguiente manera:
 
@@ -233,7 +242,7 @@ Para codigo kernel, el compilador debera manejar las directivas _include_ de la 
 
   3. los includes estandar de C99 como _stdint.h_ o _stdbool.h_ si deberan estar disponibles (en este caso, los proporciona el mismo compilador y no libc).
 
-La opciÃ³n `-ffreestanding` no es suficiente para conseguir este comportamiento, por lo que se necesitan ajustes adicionales en `CPPFLAGS`. A continuacion se muestra como hacerlo en GCC y, mas facilmente, usando Clang:
+La opcion `-ffreestanding` no es suficiente para conseguir este comportamiento, por lo que se necesitan ajustes adicionales en `CPPFLAGS`. A continuacion se muestra como hacerlo en GCC y, mas facilmente, usando Clang:
 
   - Clang
 
@@ -255,8 +264,7 @@ La opciÃ³n `-ffreestanding` no es suficiente para conseguir este comportamient
 [^stdlibinc]: La opcion [`-nostdlibinc`][nostdlibinc] de Clang  es precisamente la que se necesita para el kernel; GCC no la tiene, y [`-nostdinc`][nostdinc] implementa el punto 1 sin combinarlo con el 3.
 
 
-### Ej: kern2-meminfoÂ â˜…
-{: #ej-meminfo}
+### Ej: kern2-meminfo ★
 
 Se desea imprimir durante el arranque la cantidad de memoria fisica que el sistema reporta a traves de Multiboot; por ejemplo:
 
@@ -351,7 +359,6 @@ Ayuda adicional:
 
 
 ## Concurrencia cooperativa
-{: #cooperative}
 
 Dadas dos o mas tareas que se desea ejecutar de manera concurrente en un procesador â€”ï»¿por ejemplo, el cÃ¡lculo de nÃºmeros primos o de los dÃ­gitos de Ï€, o cualquier otra tarea [CPU-bound][cpu-bound]ï»¿â€” lo habitual es asignar a cada un flujo de ejecuciÃ³n separado (ya sean procesos o hilos); y delegar al sistema operativo la implementaciÃ³n de la concurrencia, esto es, la alternancia de ambos flujos.
 
@@ -366,7 +373,6 @@ La respuesta a esta pregunta es una _planificacion cooperativa_ en la que dos o 
 
 
 ### Ej: kern2-task
-{: #ej-task}
 
 En el ejercicio [kern2-stack](#kern2-stack) se vio como declarar espacio para stacks adicionales. En este ejercicio se realizaran, en dos stacks separados de 4Â KiB, sendas llamadas a la funcion ya implementada `vga_write()`.
 
@@ -458,7 +464,6 @@ two_stacks:
 
 
 ### Ej: kern2-exec
-{: #ej-exec}
 
 Implementar ahora una funcion en C que realice la misma tarea que `two_stacks()`, realizando las llamadas de escritura de la siguiente manera:
 
@@ -534,7 +539,6 @@ void two_stacks_c() {
 
 
 ### Ej: kern2-regcall
-{: #ej-regcall}
 
 Para este ejercicio se añadira una segunda version de `vga_write()` que toma sus parametros directamente por registros:
 
@@ -577,7 +581,6 @@ void kmain(const multiboot_info_t *mbi) {
 
 
 ### Ej: kern2-swap
-{: #ej-swap}
 
 En el archivo [contador.c](contador.c) se proporciona una funcion `contador_yield()` que muestra en el buffer VGA una cuenta desde 0 hasta un numero pasado como parametro. Para simular un retardo entre numero y numero, a cada incremento se le aÃ±ade un ciclo _while_ con un numero alto de iteraciones (controlado por la macro `DELAY`).
 
@@ -647,7 +650,6 @@ En este ejercicio se pide, siguiendo las instrucciones indicadas:
 
 
 ### Ej: kern2-exit ★
-{: #ej-exit}
 
 En la funcion `contador_run()` del ejercicio anterior, se configuran ambos contadores con el mismo numero de iteraciones. Reducir ahora el nÃºmero de iteraciones del _segundo_ contador, y describir que tipo de error ocurre.
 
@@ -672,7 +674,6 @@ A continuacion, eliminar la llamada explÃ­cita a `exit()`, y programar su ejec
 
 
 ## Interrupciones: reloj y teclado
-{: #interrupts}
 
 Para poder hacer planificacion basada en intervalos de tiempo, es necesario tener configurada una interrupcion de reloj que de manera periodica devuelva el control de la CPU al kernel. Asi, en cada uno de esos instantes el kernel tendra oportunidad de decidir si corresponde cambiar la tarea en ejecucion.
 
@@ -823,7 +824,6 @@ breakpoint:
 Con esta primera definicion, _kern2_ deberÃ­a arrancar sin problemas, llegando hasta la ejecucion de `vga_write2()`.
 
 ### Ej: kern2-isr
-{: #ej-isr}
 
 Cuando ocurre una excepcion, la CPU inmediatamente invoca al manejador configurado, esto es, justo tras la instruccion original que produjo la excepcion.
 
@@ -961,7 +961,6 @@ Incluir las respuestas a las siguientes cuestiones:
 
 
 ### Ej: kern2-irq
-{: #ej-irq}
 
 Los codigos de excepcion 0 a 31 forman parte de la definicion de la arquitectura x86 (**IA32-3A**, Â§6.3.1); su significado es fijo. Los codigos 32 a 255 estan disponibles para su uso bien por el sistema operativo, bien por dispositivos fÃ­sicos del sistema.
 
@@ -1088,7 +1087,6 @@ Para poder invocar a esta funciÃ³n:
 
 
 ### Ej: kern2-div
-{: #ej-div}
 
 En este ultimo ejercicio se estudia el subtipo particular de excepciÃ³n llamado _fault_ (ver **IA32-3A** Â§6.5 y Â§6.6).
 
@@ -1154,8 +1152,7 @@ Se pide:
 
     Requerimiento: no usar `pusha`/`popa`; guardar y restaurar el mi­nimo numero de registros necesarios.
 
-### Ej: kern2-kbdÂ â˜…
-{: #ej-kbd}
+### Ej: kern2-kbd ★
 
 En el archivo [handlers.c](handlers.c) se incluyen un par de ejemplos de manejo del timer y del teclado. Sobre el codigo del teclado se pide:
 
