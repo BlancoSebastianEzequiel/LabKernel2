@@ -1,7 +1,7 @@
 #ifndef KERN2_DECL_H
 #define KERN2_DECL_H
 
-#include <stdint.h>
+#include "libs/stdint.h"
 
 struct multiboot_info;
 
@@ -38,9 +38,8 @@ void timer(void);
 void keyboard(void);
 
 // funcs.S
-__attribute__((regparm(3))) void vga_write2(const char *s,
-                                            int8_t linea,
-                                            uint8_t color);
+__attribute__((regparm(3))) void vga_write2(
+        const char *s, int8_t linea, uint8_t color);
 
 // write.c
 void vga_write(const char *s, int8_t linea, uint8_t color);

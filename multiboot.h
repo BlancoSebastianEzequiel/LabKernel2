@@ -98,7 +98,7 @@
 
 #ifndef __ASSEMBLER__
 
-#include <stdint.h>
+#include "libs/stdint.h"
 
 struct multiboot_header {
     /* Must be MULTIBOOT_MAGIC - see above. */
