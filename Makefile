@@ -1,7 +1,7 @@
 CFLAGS := -g -std=c99 -Wall -Wextra -Wpedantic
 CFLAGS += -m32 -O1 -ffreestanding
 
-SRCS := $(wildcard *.c) # usar wildcard *.c
+SRCS := $(wildcard *.c) $(wildcard lib/*.c)
 OBJS :=  $(patsubst src/,,$(SRCS:.c=.o)) # usar patsubst sobre SRCS
 
 QEMU := qemu-system-i386 -serial mon:stdio
@@ -26,6 +26,6 @@ gdb:
 	gdb -q -s kern2 -n -ex 'target remote 127.0.0.1:7508'
 
 clean:
-	rm -f kern2 *.o core
+	rm -f kern2 *.o lib/*.o core
 
 .PHONY: qemu qemu-gdb gdb
