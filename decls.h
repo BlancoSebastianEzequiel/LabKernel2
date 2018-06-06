@@ -1,7 +1,7 @@
 #ifndef KERN2_DECL_H
 #define KERN2_DECL_H
 
-#include "libs/stdint.h"
+#include "lib/stdint.h"
 
 struct multiboot_info;
 
