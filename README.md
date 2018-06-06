@@ -28,11 +28,11 @@ Material de apoyo:
 
 ## Creacion de stacks en el kernel
 
-Cuando un programa se ejecuta, normalmente es el sistema operativo quien le configura el stack de manera adecuada, esto es: reserva un espacio en memoria (a menudo 4 u 8Â KiB) y apunta _%esp_ a dicha region (bien al lÃ­mite inferior, bien al superior, segun la direccion en que crece la pila en la arquitectura).
+Cuando un programa se ejecuta, normalmente es el sistema operativo quien le configura el stack de manera adecuada, esto es: reserva un espacio en memoria (a menudo 4 u 8Â KiB) y apunta _%esp_ a dicha region (bien al limite inferior, bien al superior, segun la direccion en que crece la pila en la arquitectura).
 
 Un kernel, en cambio, es responsable de asignarse su propio _boot stack_ durante el proceso de arranque.
 
-Por su parte, los programas de usuario tambiÃ©n pueden crearse pilas adicionales, por ejemplo para ejecutar varias tareas de manera concurrente.
+Por su parte, los programas de usuario tambien pueden crearse pilas adicionales, por ejemplo para ejecutar varias tareas de manera concurrente.
 
 
 ### Ej: kern2-stack
@@ -40,10 +40,10 @@ Por su parte, los programas de usuario tambiÃ©n pueden crearse pilas adicional
 - Lecturas obligatorias
 
   - BRY2
-    - cap. 3: Â§6(**6**{:title="Conditional Move Instructions"})
+    - cap. 3: §6(**6**{:title="Conditional Move Instructions"})
 {:.biblio}
 
-La manera estÃ¡ndar de configurar la pila de arranque del sistema operativo es reservar espacio en el propio binario, esto es: un arreglo en memoria del tamaÃ±o deseado. Puede declararse en un archivo C:
+La manera estandar de configurar la pila de arranque del sistema operativo es reservar espacio en el propio binario, esto es: un arreglo en memoria del tamaño deseado. Puede declararse en un archivo C:
 
 ```c
 unsigned char kstack[8192];
@@ -88,7 +88,7 @@ El archivo _decls.h_, por el momento, tendrÃ­a:
 
 #include <stdint.h>
 
-// write.c (funciÃ³n de kern0-vga copiada no-static).
+// write.c (funcion de kern0-vga copiada no-static).
 void vga_write(const char *s, int8_t linea, uint8_t color);
 
 #endif
@@ -169,7 +169,7 @@ KERN ?= kern2
 BOOT := -kernel $(KERN) $(QEMU_EXTRA)
 ```
 
-se puede especificar la opciÃ³n directamente al invocar _make:_
+se puede especificar la opcion directamente al invocar _make:_
 
     $ make qemu QEMU_EXTRA="-append 'param1=hola param2=adios'"
 
@@ -202,7 +202,7 @@ Finalmente:
 
   - Mostrar como implementar la misma concatenacion, de manera correcta, usando [`strncat(3)`][strncat].[^nostrncat]
 
-  - Explicar como se comporta [`strlcat(3)`][strlcat] si, errÃ³neamente, se declarase _buf_ con tamaÃ±o 12. Â¿Introduce algun error el codigo?
+  - Explicar como se comporta [`strlcat(3)`][strlcat] si, errÃ³neamente, se declarase _buf_ con tamaño 12. ¿Introduce algun error el codigo?
 
   - Compilar el siguiente programa, y explicar por que se imprimen dos li­neas distintas, en lugar de la misma dos veces:
 
@@ -226,7 +226,7 @@ Finalmente:
 [strncat]: http://man7.org/linux/man-pages/man3/strcat.3.html
 [lkmlarr]: https://lkml.org/lkml/2015/9/3/428 "â€œChrist, people. Learn C, instead of just stringing random characters together until it compiles.â€"
 
-[^nostrncat]: El archivo _string.c_ proporcionado no incluye una implementaciÃ³n de `strncat(3)`. Esta implementaciÃ³n alternativa se puede realizar leyendo la documentaciÃ³n de la funciÃ³n, y probÃ¡ndolo en un programa aparte, en espacio de usuario.
+[^nostrncat]: El archivo _string.c_ proporcionado no incluye una implementaciÃ³n de `strncat(3)`. Esta implementaciÃ³n alternativa se puede realizar leyendo la documentacion de la funcion, y probandolo en un programa aparte, en espacio de usuario.
 
 [^linus]: Es por esto que Linus Torvalds, [en su estilo caracterÃ­stico][lkmlarr], recomienda siempre usar `char *buf` y nunca `char buf[â€‹]` en la declaracion de una funcion.
 
@@ -278,7 +278,7 @@ Se puede cambiar la cantidad de memoria con el parÃ¡metro `-m` de QEMU:
     $ make qemu QEMU_EXTRA="-m 256"
     Physical memory: 255MiB total (639KiB base, 260992KiB extended)
 
-Para imprimir un valor nÃºmero en el buffer VGA se podrÃ­a definir en _write.c_ una funciÃ³n con un prototipo similar a:
+Para imprimir un valor numero en el buffer VGA se podra definir en _write.c_ una funcion con un prototipo similar a:
 
 ```c
 #include <stdbool.h>
