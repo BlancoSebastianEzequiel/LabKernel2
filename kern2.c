@@ -46,7 +46,7 @@ void uint32_tToString(const uint32_t num, char* buf, size_t maxSize) {
 //  KMAIN
 //------------------------------------------------------------------------------
 void kmain(const multiboot_info_t *mbi) {
-    if (mbi == NULL) vga_write("mbi == NULL", 5, 0x70);
+    if (mbi == NULL) vga_write("mbi == NULL", 10, 0x70);
     vga_write("kern2 loading.............", 8, 0x70);
     if (mbi->flags == MULTIBOOT_INFO_CMDLINE) {
         char buf[256] = "cmdline: ";
