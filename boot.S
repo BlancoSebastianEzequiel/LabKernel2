@@ -27,8 +27,8 @@ _start:
     // (copia condicional).
     // ...
     cmp %eax, MULTIBOOT_BOOTLOADER_MAGIC # si arranco con multiboot -> ZF = 1
-    mov 0, %ebx
-    cmovne %ebx, %eax
+    mov $0, %ebx
+    CMOVNE %ebx, %eax
     push %eax
     call kmain
 halt:
