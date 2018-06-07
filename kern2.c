@@ -3,17 +3,6 @@
 #include "lib/string.h"
 #include "lib/stddef.h"
 //------------------------------------------------------------------------------
-//  PRINT NUM
-//------------------------------------------------------------------------------
-void print_num(const size_t num, int8_t linea, uint8_t color) {
-    char size_char[256];
-    int decenas = num/10;
-    int unidades = num-(decenas*10);
-    size_char[0] = (char) (decenas + 48);
-    size_char[1] = (char) (unidades + 48);
-    vga_write(size_char, linea, color);
-}
-//------------------------------------------------------------------------------
 //  DIGITS QUANTITY
 //------------------------------------------------------------------------------
 size_t digitsQuantity(const uint32_t num) {
