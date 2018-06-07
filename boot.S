@@ -25,11 +25,11 @@ _start:
     // comparar con MULTIBOOT_BOOTLOADER_MAGIC, pero no usar
     // un salto a continuación, sino una instrucción CMOVcc
     // (copia condicional).
-    // ...
-    cmp %eax, MULTIBOOT_BOOTLOADER_MAGIC # si arranco con multiboot -> ZF = 1
-    mov $0, %ebx
-    CMOVNE %ebx, %eax
-    push %eax
+    mov $0, %ecx
+    // si arranco con multiboot -> ZF = 1
+    cmp %eax, MULTIBOOT_BOOTLOADER_MAGIC
+    cmovne %ecx, %ebx
+    push %ebx
     call kmain
 halt:
     hlt
