@@ -27,7 +27,7 @@ _start:
     // (copia condicional).
     mov $0, %ecx
     // si arranco con multiboot -> ZF = 1
-    cmp %eax, MULTIBOOT_BOOTLOADER_MAGIC
+    test MULTIBOOT_BOOTLOADER_MAGIC, %eax
     cmovne %ecx, %ebx
     push %ebx
     call kmain
