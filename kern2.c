@@ -39,10 +39,20 @@ void kmain(const multiboot_info_t *mbi) {
     vga_write("kern2 loading.............", 8, 0x70);
     if (mbi->flags & MULTIBOOT_INFO_CMDLINE) {
         char buf[256] = "cmdline: ";
-        char *cmdline = (void*) mbi->cmdline;
-        strlcat(buf, cmdline, strlen(buf)+strlen(cmdline)+1);
+        char *cmdline = (void *) mbi->cmdline;
+        strlcat(buf, cmdline, strlen(buf) + strlen(cmdline) + 1);
         vga_write(buf, 9, 0x07);
     }
+
+    char mem[256] = "Physical memory: ";
+    char tmp[64] = "";
+
+    if (fmt_int(mbi->cmdline, tmp, sizeof tmp)) {
+        strlcat(mem, tmp, sizeof mem);
+        strlcat(mem, "MiB total", sizeof mem);
+    }
+    vga_write(mem, 10, 0x07);
+
     while (1) __asm__("hlt");
 }
 //------------------------------------------------------------------------------
