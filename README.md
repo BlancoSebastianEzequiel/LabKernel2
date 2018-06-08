@@ -193,8 +193,8 @@ void kmain(const multiboot_info_t *mbi) {
 
 Para manejo de cadenas con _string.h_, se reusa la biblioteca estandar de [Pintos], un kernel educativo de Stanford; en particular:
 
-  - [lib/string.h](string.h)
-  - [lib/string.c](string.c)
+  - [lib/string.h](lib/string.h)
+  - [lib/string.c](lib/string.c)
 
 Estos archivos deben ir en un subdirectorio _lib_, ajustando la variable `SRCS` como corresponda.
 
