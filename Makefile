@@ -10,7 +10,7 @@ QEMU := qemu-system-i386 -serial mon:stdio
 KERN ?= kern2
 BOOT := -kernel $(KERN) $(QEMU_EXTRA)
 
-kern2: boot.o stacks.o tasks.o $(OBJS)
+kern2: boot.o stacks.o tasks.o funcs.o $(OBJS)
 	ld -m elf_i386 -Ttext 0x100000 $^ $(LIBGCC) -o $@
 	# Verificar imagen Multiboot v1.
 	grub-file --is-x86-multiboot $@
