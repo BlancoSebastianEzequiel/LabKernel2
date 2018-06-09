@@ -9,6 +9,10 @@ void kmain(const multiboot_info_t *mbi) {
     if (mbi == NULL) vga_write("mbi == NULL", 10, 0x70);
     vga_write("kern2 loading.............", 8, 0x70);
 
+    two_stacks();
+    // vga_write("vga_write() from stack1", 12, 0x17);
+    // vga_write("vga_write() from stack2", 13, 0x90);
+
     if (mbi->flags & MULTIBOOT_INFO_CMDLINE) {
         char buf[256] = "cmdline: ";
         char *cmdline = (void *) mbi->cmdline;
