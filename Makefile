@@ -1,8 +1,7 @@
 CFLAGS := -g -std=c99 -Wall -Wextra -Wpedantic
-CFLAGS += -m32 -O1 -ffreestanding
+CFLAGS += -m32 -O1 -ffreestanding -fasm
 CPPFLAGS := -nostdinc -idirafter lib
-GCC_PATH := /usr/lib/gcc/x86_64-linux-gnu/6
-CPPFLAGS += -I$(GCC_PATH)/include -I$(GCC_PATH)/include-fixed
+LIBGCC := $(shell $(CC) $(CFLAGS) -print-libgcc-file-name)
 
 SRCS := $(wildcard *.c) $(wildcard lib/*.c)
 OBJS :=  $(patsubst src/,,$(SRCS:.c=.o)) # usar patsubst sobre SRCS
@@ -12,12 +11,12 @@ KERN ?= kern2
 BOOT := -kernel $(KERN) $(QEMU_EXTRA)
 
 kern2: boot.o $(OBJS)
-	ld -m elf_i386 -Ttext 0x100000 --entry ??? $^ -o $@
+	ld -m elf_i386 -Ttext 0x100000 $^ $(LIBGCC) -o $@
 	# Verificar imagen Multiboot v1.
 	grub-file --is-x86-multiboot $@
 
 %.o: %.S
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
+	$(CC) $(CFLAGS) -c $<
 
 qemu: $(KERN)
 	$(QEMU) $(BOOT)
