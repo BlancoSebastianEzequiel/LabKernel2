@@ -1,5 +1,5 @@
 CFLAGS := -g -std=c99 -Wall -Wextra -Wpedantic
-CFLAGS += -m32 -O1 -ffreestanding -fasm
+CFLAGS += -m32 -O1 -ffreestanding -fasm -fno-omit-frame-pointer
 CPPFLAGS := -nostdinc -idirafter lib
 LIBGCC := $(shell $(CC) $(CFLAGS) -print-libgcc-file-name)
 
@@ -10,7 +10,7 @@ QEMU := qemu-system-i386 -serial mon:stdio
 KERN ?= kern2
 BOOT := -kernel $(KERN) $(QEMU_EXTRA)
 
-kern2: boot.o stacks.o $(OBJS)
+kern2: boot.o stacks.o tasks.o $(OBJS)
 	ld -m elf_i386 -Ttext 0x100000 $^ $(LIBGCC) -o $@
 	# Verificar imagen Multiboot v1.
 	grub-file --is-x86-multiboot $@
