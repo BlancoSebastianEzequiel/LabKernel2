@@ -1,14 +1,16 @@
 #include "decls.h"
 #include "interrupts.h"
 
+
 #define IDTLIMIT 0xFF
 #define IDTBASE 0x00000000
+#define IDTSIZE 256
 
 #define LOW_MASK 0xFFFF
 #define DESP 16
 
 static struct IDTR idtr;
-static struct Gate idt[256];
+static struct Gate idt[IDTSIZE];
 
 // Multiboot siempre define "8" como el segmento de código.
 // (Ver campo CS en `info registers` de QEMU.)
