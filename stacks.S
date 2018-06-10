@@ -32,7 +32,7 @@ two_stacks:
 
         // Registros para apuntar a stack1 y stack2.
         mov $stack1_top, %eax
-        mov $stack2_top, %edx   // Decidir qué registro usar.
+        mov $stack2_top, %edi   // Decidir qué registro usar.
         // (Cuando use %ecx no andaba!!! preguntar por que)
         // no usar %ebx porque ahi esta el argumento de la
         // funcion kmain, antes lo use y commandline no funcionaba
@@ -41,13 +41,13 @@ two_stacks:
         // usar offsets respecto a %eax ($stack1_top), y lo mismo
         // para el registro usado para stack2_top.
         movl $0x17, THIRD_ARG(%eax)
-        movl $0x90, THIRD_ARG(%edx)
+        movl $0x90, THIRD_ARG(%edi)
 
         movl $12, SECOND_ARG(%eax)
-        movl $13, SECOND_ARG(%edx)
+        movl $13, SECOND_ARG(%edi)
 
         movl $msg1, FIRST_ARG(%eax)
-        movl $msg2, FIRST_ARG(%edx)
+        movl $msg2, FIRST_ARG(%edi)
 
         // Realizar primera llamada con stack1. Ayuda: usar LEA
         // con el mismo offset que los últimos MOV para calcular
@@ -59,7 +59,7 @@ two_stacks:
         movl %ebp, %esp
 
         // Realizar segunda llamada con stack2.
-        leal STACK_DIR(%edx), %esp
+        leal STACK_DIR(%edi), %esp
         call vga_write
 
         // Restaurar registros callee-saved, si se usaron.
