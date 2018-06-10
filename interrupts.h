@@ -4,9 +4,14 @@
 #include <stdint.h>
 
 // IDTR Register (see IA32-3A, Â§6.10 INTERRUPT DESCRIPTOR TABLE).
+// IDT puede albergar 256 descriptors como maximo.
+// Cada descriptor de la IDT tiene un tamaño fijo de 8 bytes
+// El IDT base addres debe estar alineada a 8 bytes.
+// El valor del limite debe ser siempre (8*N - 1)
+// El registro de la IDT (IDTR) contiene la informacion de la IDT
 struct IDTR {
-    uint16_t limit;  // Limit
-    uint32_t base;   // Base address
+    uint16_t limit;  // Limit: tiene tamaño 16 bits
+    uint32_t base;   // Base address: tiene tamaño 32 bits
 } __attribute__((packed));
 
 

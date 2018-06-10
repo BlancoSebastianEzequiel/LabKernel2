@@ -2,6 +2,7 @@
 #include "multiboot.h"
 #include "lib/string.h"
 #include "lib/stddef.h"
+#include "interrupts.h"
 
 #define USTACK_SIZE 4096
 static uint8_t stack1[USTACK_SIZE] __attribute__((aligned(4096)));
