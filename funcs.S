@@ -1,6 +1,3 @@
-.data
-msg1:
-        .asciz "hola"
 .globl vga_write2
 vga_write2:
         push %ebp
