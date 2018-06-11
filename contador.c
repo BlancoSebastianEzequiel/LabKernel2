@@ -1,4 +1,5 @@
 #include "decls.h"
+#include "lib/string.h"
 
 #define COUNTLEN 20
 #define TICKS (1ULL << 15)
@@ -6,19 +7,25 @@
 #define USTACK_SIZE 4096
 
 static volatile char *const VGABUF = (volatile void *) 0xb8000;
-//char msg[256] = "";
+
 static uintptr_t esp;
 static uint8_t stack1[USTACK_SIZE] __attribute__((aligned(4096)));
 static uint8_t stack2[USTACK_SIZE] __attribute__((aligned(4096)));
 //------------------------------------------------------------------------------
+// PRINT STACKS
+//------------------------------------------------------------------------------
+void printNum(char* msg, size_t max, uintptr_t num, int8_t line) {
+    char num_msg[64];
+    fmt_int(num, num_msg, 64);
+    strlcat(msg, num_msg, max);
+    vga_write(msg, line, 0x2F);
+}
+//------------------------------------------------------------------------------
 // YIELD
 //------------------------------------------------------------------------------
 static void yield() {
-    if (esp) {
-        //fmt_int(esp, msg, 256);
+    if (esp)
         task_swap(&esp);
-        //vga_write(msg, 22, 0x2F);
-    }
 }
 //------------------------------------------------------------------------------
 // CONTADOR YIELD
@@ -59,6 +66,8 @@ void contador_run() {
     // Configurar stack1 y stack2 con los valores apropiados.
     uintptr_t *a = (uintptr_t*) stack1+USTACK_SIZE;
     uintptr_t *b = (uintptr_t*) stack2+USTACK_SIZE;
+
+    //contador_yield(100, 0, 0x2F);
     *(--a) = 0x2F;  // color
     *(--a) = 0;  // linea
     *(--a) = 100;  // numero
@@ -68,30 +77,21 @@ void contador_run() {
      mejor realizarla tras implementar task_swap(); pues se debe crear
      artificialmente el stack tal y como lo hubiera preparado esta función.
     */
+    //contador_yield(100, 1, 0x4F);
     *(--b) = 0x4F;  // color
-    *(--b) = 1;  // linea
-    *(--b) = 100;  // numero
-
+    *(--b) = 1;     // linea
+    *(--b) = 100;   // numero
+    *(--b) = (uintptr_t) 0;     //ret falso
+    *(--b) = (uintptr_t) contador_yield;     //ret cominezo
+    *(--b) = 0;     //push %edi
+    *(--b) = 0;     //push %ebp
+    *(--b) = 0;     //push %esi
+    *(--b) = 0;     //push %ebx
     // Actualizar la variable estática ‘esp’ para que apunte
     // al del segundo contador.
     esp = (uintptr_t) b;
 
-    // push %esp
-    b--;
-    asm("movl %%esp, %0;": /* no outputs */: "r"(b));
-    // push %ebp
-    b--;
-    asm("movl %%ebp, %0;": /* no outputs */: "r"(b));
-    // push %esi
-    b--;
-    asm("movl %%esi, %0;": /* no outputs */: "r"(b));
-    // push %ebx
-    b--;
-    asm("movl %%ebx, %0;": /* no outputs */: "r"(b));
-
     // Lanzar el primer contador con task_exec.
     task_exec((uintptr_t) contador_yield, (uintptr_t) a);
-    //contador_yield(100, 0, 0x2F);
-    //contador_yield(100, 1, 0x4F);
 }
 //------------------------------------------------------------------------------
