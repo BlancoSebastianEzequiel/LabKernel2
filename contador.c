@@ -12,13 +12,13 @@ static uintptr_t esp;
 static uint8_t stack1[USTACK_SIZE] __attribute__((aligned(4096)));
 static uint8_t stack2[USTACK_SIZE] __attribute__((aligned(4096)));
 //------------------------------------------------------------------------------
-// PRINT STACKS
+// EXIT
 //------------------------------------------------------------------------------
-void printNum(char* msg, size_t max, uintptr_t num, int8_t line) {
-    char num_msg[64];
-    fmt_int(num, num_msg, 64);
-    strlcat(msg, num_msg, max);
-    vga_write(msg, line, 0x2F);
+static void exit() {
+    uintptr_t tmp = esp;
+    esp = 0;
+    if (tmp)
+        task_swap(&tmp);
 }
 //------------------------------------------------------------------------------
 // YIELD
@@ -40,7 +40,7 @@ static void contador_yield(unsigned lim, uint8_t linea, char color) {
         unsigned p = 0;
         unsigned long long i = 0;
 
-        while (i++ < DELAY(6))  // Usar un entero menor si va demasiado lento.
+        while (i++ < DELAY(10))  // Usar un entero menor si va demasiado lento.
             ;
 
         while (counter[p] == '9') {
@@ -58,6 +58,7 @@ static void contador_yield(unsigned lim, uint8_t linea, char color) {
 
         yield();
     }
+    exit();
 }
 //------------------------------------------------------------------------------
 // CONTADOR RUN
@@ -80,7 +81,7 @@ void contador_run() {
     //contador_yield(100, 1, 0x4F);
     *(--b) = 0x4F;  // color
     *(--b) = 1;     // linea
-    *(--b) = 100;   // numero
+    *(--b) = 10;   // numero
     *(--b) = (uintptr_t) 0;     //ret falso
     *(--b) = (uintptr_t) contador_yield;     //ret cominezo
     *(--b) = 0;     //push %edi
