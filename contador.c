@@ -21,6 +21,18 @@ static void exit() {
         task_swap(&tmp);
 }
 //------------------------------------------------------------------------------
+// IS FINISHED
+//------------------------------------------------------------------------------
+static void finish(unsigned lim) {
+    if (lim != 0 || !esp) return;
+    uintptr_t *top1 = (uintptr_t *) &stack1[USTACK_SIZE];
+    uintptr_t *top2 = (uintptr_t *) &stack2[USTACK_SIZE];
+    if (esp < (uintptr_t) top1 && esp >= (uintptr_t) stack1) {
+        top2 -= 4;
+        *top2 = (uintptr_t) exit;
+    }
+}
+//------------------------------------------------------------------------------
 // YIELD
 //------------------------------------------------------------------------------
 static void yield() {
@@ -40,7 +52,7 @@ static void contador_yield(unsigned lim, uint8_t linea, char color) {
         unsigned p = 0;
         unsigned long long i = 0;
 
-        while (i++ < DELAY(10))  // Usar un entero menor si va demasiado lento.
+        while (i++ < DELAY(6))  // Usar un entero menor si va demasiado lento.
             ;
 
         while (counter[p] == '9') {
@@ -55,18 +67,17 @@ static void contador_yield(unsigned lim, uint8_t linea, char color) {
             *buf++ = *c;
             *buf++ = color;
         }
-
+        finish(lim);
         yield();
     }
-    exit();
 }
 //------------------------------------------------------------------------------
 // CONTADOR RUN
 //------------------------------------------------------------------------------
 void contador_run() {
     // Configurar stack1 y stack2 con los valores apropiados.
-    uintptr_t *a = (uintptr_t*) stack1+USTACK_SIZE;
-    uintptr_t *b = (uintptr_t*) stack2+USTACK_SIZE;
+    uintptr_t *a = (uintptr_t*) &stack1[USTACK_SIZE];
+    uintptr_t *b = (uintptr_t*) &stack2[USTACK_SIZE];
 
     //contador_yield(100, 0, 0x2F);
     *(--a) = 0x2F;  // color
@@ -81,7 +92,7 @@ void contador_run() {
     //contador_yield(100, 1, 0x4F);
     *(--b) = 0x4F;  // color
     *(--b) = 1;     // linea
-    *(--b) = 10;   // numero
+    *(--b) = 100;   // numero
     *(--b) = (uintptr_t) 0;     //ret falso
     *(--b) = (uintptr_t) contador_yield;     //ret cominezo
     *(--b) = 0;     //push %edi
