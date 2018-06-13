@@ -21,18 +21,6 @@ static void exit() {
         task_swap(&tmp);
 }
 //------------------------------------------------------------------------------
-// IS FINISHED
-//------------------------------------------------------------------------------
-static void finish(unsigned lim) {
-    if (lim != 0 || !esp) return;
-    uintptr_t *top1 = (uintptr_t *) &stack1[USTACK_SIZE];
-    uintptr_t *top2 = (uintptr_t *) &stack2[USTACK_SIZE];
-    if (esp < (uintptr_t) top1 && esp >= (uintptr_t) stack1) {
-        top2 -= 4;
-        *top2 = (uintptr_t) exit;
-    }
-}
-//------------------------------------------------------------------------------
 // YIELD
 //------------------------------------------------------------------------------
 static void yield() {
@@ -67,7 +55,6 @@ static void contador_yield(unsigned lim, uint8_t linea, char color) {
             *buf++ = *c;
             *buf++ = color;
         }
-        finish(lim);
         yield();
     }
 }
@@ -93,8 +80,8 @@ void contador_run() {
     *(--b) = 0x4F;  // color
     *(--b) = 1;     // linea
     *(--b) = 100;   // numero
-    *(--b) = (uintptr_t) 0;     //ret falso
-    *(--b) = (uintptr_t) contador_yield;     //ret cominezo
+    *(--b) = (uintptr_t) exit;                //ret falso
+    *(--b) = (uintptr_t) contador_yield;      //ret cominezo
     *(--b) = 0;     //push %edi
     *(--b) = 0;     //push %ebp
     *(--b) = 0;     //push %esi
