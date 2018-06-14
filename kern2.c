@@ -65,7 +65,7 @@ void kmain(const multiboot_info_t *mbi) {
     two_stacks();
     two_stacks_c();
 
-    contador_run();  // Nueva llamada ej. kern2-swap.
+    //contador_run();  // Nueva llamada ej. kern2-swap.
     
     // Código ejercicio kern2-idt.
     idt_init();   // (a)
