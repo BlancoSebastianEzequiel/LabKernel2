@@ -1,9 +1,6 @@
 #include "decls.h"
 #include "interrupts.h"
 
-
-#define IDTLIMIT 0xFF
-#define IDTBASE 0x00000000
 #define IDTSIZE 256
 
 #define LOW_MASK 0xFFFF
@@ -25,8 +22,8 @@ void idt_init(void){
 	// (1) Instalar manejadores ("interrupt service routines").
     idt_install(T_BRKPT, breakpoint);
 
-	idtr.base = (uintptr_t) IDTBASE;
-	idtr.limit = IDTLIMIT;
+	idtr.base = (uintptr_t) idt;
+	idtr.limit = (sizeof(idt) - 1);
 
 	asm("lidt %0" : : "m"(idtr));
 }
