@@ -42,6 +42,11 @@ static size_t int_width(uint64_t val) {
 // es menor que ‘bufsize’. En ese caso devuelve true, caso de
 // no haber espacio suficiente no hace nada y devuelve false.
 bool fmt_int(uint64_t val, char *s, size_t bufsize) {
+    if (val == 0) {
+        s[0] = (char) 48;
+        s[1] = '\0';
+        return true;
+    }
     size_t l = int_width(val);
     if (l >= bufsize)  // Pregunta: ¿por qué no "l > bufsize"?
         return false;
