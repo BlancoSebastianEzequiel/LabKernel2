@@ -1,4 +1,4 @@
 .globl breakpoint
 breakpoint:
-        // Manejador mínimo.
+        // Manejador minimo.
         iret
