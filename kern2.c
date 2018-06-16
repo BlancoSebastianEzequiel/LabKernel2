@@ -72,8 +72,14 @@ void kmain(const multiboot_info_t *mbi) {
     irq_init();   // Ej: kern2-irq
     asm("int3");  // (b)
 
-
-    vga_write2("Funciona vga_write2?", 18, 0xE0);
+    /* Ej: kern2-div */
+    int8_t linea;
+    uint8_t color;
+    asm("div %4"
+    : "=a"(linea), "=c"(color)
+    : "0"(18), "1"(0xE0), "b"(0), "d"(0));
+    vga_write2("Funciona vga_write2?", linea, color);
+    /* Ej: kern2-div */
 
     if (mbi->flags & MULTIBOOT_INFO_CMDLINE) {
         char buf[256] = "cmdline: ";
