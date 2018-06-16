@@ -79,7 +79,7 @@ void contador_run() {
     //contador_yield(100, 1, 0x4F);
     *(--b) = 0x4F;  // color
     *(--b) = 1;     // linea
-    *(--b) = 100;   // numero
+    *(--b) = 10;   // numero
     *(--b) = (uintptr_t) exit;                //ret falso
     *(--b) = (uintptr_t) contador_yield;      //ret cominezo
     *(--b) = 0;     //push %edi
