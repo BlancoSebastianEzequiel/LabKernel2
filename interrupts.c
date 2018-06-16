@@ -25,6 +25,7 @@ void idt_init(void){
 
 	// (1) Instalar manejadores ("interrupt service routines").
     idt_install(T_BRKPT, breakpoint);
+    idt_install(T_DIVIDE, divzero); // Ej: kern2-div
 
 	idtr.base = (uintptr_t) idt;
 	idtr.limit = (sizeof(idt) - 1);
