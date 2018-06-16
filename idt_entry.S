@@ -51,3 +51,28 @@ timer_asm:
         pop %eax
         jmp ack_irq
 //------------------------------------------------------------------------------
+// DIVZERO
+//------------------------------------------------------------------------------
+.globl divzero
+divzero:
+        // El manejador debe, primero, incrementar el valor de %ebx, de manera
+        // que cuando se reintente la instrucción, ésta tenga éxito.
+        mov $1, %ebx
+        // (1) Guardar registros.
+        push %eax
+        push %edx
+        push %ecx
+        // vga_write_cyan("Se divide por ++ebx", 17);
+        movl $17, %edx    // 2nd argument (linea)
+        movl $msg, %eax   // 1st argument (msg)
+        // (3) Invocar a vga_write2()
+        call vga_write_cyan
+        // (4) Restaurar registros.
+        pop %ecx
+        pop %edx
+        pop %eax
+        iret
+.data
+msg:
+        .asciz "Se divide por ++ebx"
+//------------------------------------------------------------------------------
