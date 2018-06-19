@@ -62,6 +62,7 @@
 	%\pagenumbering{arabic}
 	
 	\section{Creación de stacks en el kernel}
+		% EJ KERN2 STACK
 		\subsection{Ej: kern2-stack}
 		\begin{itemize}
 			\item \textit{Explicar: ¿qué significa “estar alineado”?\\}
@@ -89,8 +90,26 @@
 		align alinea por el valor que se le pasa y p2align alinea por el valor
 		que se le pasa como potencia de dos, es decir que align 4096 alinea a
 		4Kb y p2align 12 también.\\\\
+			\item \textit{Finalmente: mostrar en una sesión de GDB los valores
+			de esp y eip al entrar en kmain, así como los valores almacenados
+			en el stack en ese momento.\\}
+			gdb -q -s kern2 -n -ex 'target remote 127.0.0.1:7508'\\
+			Leyendo símbolos desde kern2 \ldots hecho.\\
+			Remote debugging using 127.0.0.1:7508\\
+			0x0000fff0 in ?? ()\\
+			(gdb) b kmain\\
+			Punto de interrupción 1 at 0x100129: file kern2.c, line 61.\\
+			(gdb) p \$esp\\
+			\$1 = (void *) 0x0\\
+			(gdb) p/x \$eip\\
+			\$3 = 0xfff0\\
+			(gdb) info frame\\
+			Stack level 0, frame at 0x0:\\
+			eip = 0xfff0; saved eip = <unavailable>\\
+			Outermost frame: outermost\\
+			Arglist at unknown address.\\
+			Locals at unknown address, Previous frame's sp in esp\\
 		\end{itemize}
-	\newpage
 
 		\subsection{Ej: kern2-cmdline}
 		\begin{itemize}
@@ -143,23 +162,23 @@
 			\item \textit{Explicar, para el stack de cada contador, cuántas
 			posiciones se asignan, y qué representa cada una.\\}
 			En el caso del segundo stack, se pasan los tres argumentos que la
-			función contador yield necesita, luego se pasa un puntero a la función
-			exit y luego un puntero a la función contador yield. Finalmente se
+			función contado\_yield necesita, luego se pasa un puntero a la función
+			exit y luego un puntero a la función contador\_yield. Finalmente se
 			inicializan las cuatro posiciones siguientes donde se guardaran los
 			cuatro registros callee saved. Esto se hace porque cunado se cambia de
 			stack, este retira de la stack dichos registros. Por lo tanto
-			luego de ello apuntaría a contador yield
-			Cuando se hace el swap en la función task swap y se hace el switch
+			luego de ello apuntaría a contador\_yield.\\
+			Cuando se hace el swap en la función task\_swap y se hace el switch
 			entre stacks, la stack actual apunta a la segunda stack. Le saca los
 			cuatro registros callee saved y queda apuntando a la función
-			contador yield. Por lo tanto cuando ejecuta la instrucción ret salta a
-			la función contador yield. En caso de que el segundo contador termine
+			contador\_yield. Por lo tanto cuando ejecuta la instrucción ret salta a
+			la función contador\_yield. En caso de que el segundo contador termine
 			antes, cuando termina el loop principal, salta a otra función de retorno
-			que en este caso es la que se guardo antes  y que seria exit.
+			que en este caso es la que se guardo antes  y que seria exit.\\
 			En el caso del primer contador solo se guardan los tres parámetros. No
 			es necesario guardar direcciones de retorno ya que es con este stack que
 			se llama a la función, por lo tanto cuando se hace un call a
-			contador yield se guarda la dirección de retorno en la cuata posición
+			contador\_yield se guarda la dirección de retorno en la cuata posición
 			del stack.
 		\end{itemize}
 \end{document}
