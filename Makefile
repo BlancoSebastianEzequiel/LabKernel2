@@ -31,8 +31,11 @@ clean:
 	rm -f kern2 *.o lib/*.o core
 
 informe:
-	pdflatex Caratula.tex
-	#pdflatex TemplateLatex.tex
+	pdflatex TemplateLatex.tex
+	#rm TemplateLatex.log
+	#rm TemplateLatex.aux
+	#rm TemplateLatex.toc
+	clear
 code:
 	./code.sh
 
