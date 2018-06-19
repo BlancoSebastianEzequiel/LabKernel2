@@ -31,7 +31,7 @@
     tabsize=4,
     language=C,
     frame=none,
-    title=\lstname
+	title=\lstname
 }
 
 \def\labelitemi{$\bullet$}
@@ -41,13 +41,15 @@
 	\begin{titlepage}
 		\vspace*{\fill}
 		\begin{center}
-			\Large Materia \\
-			\Huge Asunto del TP \\
+			\Large 75.08 Sistemas Operativos \\
+			\Huge Entrega Kernel 2 \\
 			\bigskip\bigskip\bigskip
+			\large\textbf{Nombre y Apellido:} Sebastián Ezequiel Blanco \\
+			\textbf{Padrón:} 98539 \\
 			\large\textbf{Nombre y Apellido:} Martín Nicolás Pérez \\
 			\textbf{Padrón:} 97378 \\
-			\textbf{Fecha de Entrega:} Fecha de entrega\\
-					
+			\textbf{Fecha de Entrega:} 22/06/2018\\
+
 		\end{center}
 		\vspace*{\fill}
 	\end{titlepage}
@@ -59,20 +61,105 @@
 	\newpage
 	%\pagenumbering{arabic}
 	
-	\section{Primera seccion}
-		Texto.
-		\subsection{PrimeraSubseccion}
-		\textit{textoCursiva}
-		\bigskip\bigskip\bigskip
-		\lstinputlisting{arhcivoPrimeraSeccion}
-		Pie de Archivo o texto explicativo\\\\
-		
-		Ejemplo:
-		\lstinputlisting{examplePath.txt}
-		Texto de ejemplo o explicaciones del ejemplo\\\\
-
+	\section{Creación de stacks en el kernel}
+		\subsection{Ej: kern2-stack}
+		\begin{itemize}
+			\item \textit{Explicar: ¿qué significa “estar alineado”?\\}
+		Estar alineado significa que nuestro espacio de memoria será
+		múltiplo de un numero que es el que se utiliza para alinear, es decir,
+		que los primeros n bit empezaran en cero.\\\\
+			\item \textit{Mostrar la sintaxis de C/GCC para alinear a 32 bits
+			el arreglo kstack anterior.\\}
+\begin{lstlisting}
+	unsigned char stack1[8192] __attribute__((aligned(32)));
+\end{lstlisting}
+			\item \textit{A qué valor se está inicializando kstack?
+			¿Varía entre la versión C y la versión ASM? (Leer la documentación
+			de as sobre la directiva .space.)\\}
+		Esta inicializado en cero ya que el segundo argumento de space que es
+		fill no es especificado, y en tal caso su valor es cero. Si varia en la
+		version c ya que en esta ultima el valor de la stack en C tiene datos
+		basura\\\\
+			\item \textit{Explicar la diferencia entre las directivas .align y
+			.p2align de as, y mostrar cómo alinear el stack del kernel a 4 KiB
+			usando cada una de ellas.\\}
+		Ambas rellenean el contador de ubicación (en la subsección actual) con
+		un límite de almacenamiento particular. La primera expresión
+		(que debe ser absoluta) es la alineación requerida. La diferencia es que
+		align alinea por el valor que se le pasa y p2align alinea por el valor
+		que se le pasa como potencia de dos, es decir que align 4096 alinea a
+		4Kb y p2align 12 también.\\\\
+		\end{itemize}
 	\newpage
-	\section{Anexo}
-		\lstinputlisting{archivo}
-		
+
+		\subsection{Ej: kern2-cmdline}
+		\begin{itemize}
+			\item \textit{Mostrar cómo implementar la misma concatenación, de
+			manera correcta, usando strncat(3).}
+\begin{lstlisting}
+	char *strncat(char *dest, const char *src, size_t n) {
+		size_t dest_len = strlen(dest);
+		size_t i;
+		for (i = 0 ; i < n && src[i] != '\0' ; i++) {
+			dest[dest_len + i] = src[i];
+		}
+		dest[dest_len + i] = '\0';
+		return dest;
+	}
+\end{lstlisting}
+			\item \textit{Explicar cómo se comporta strlcat(3) si, erróneamente,
+			se declarase buf con tamaño 12. ¿Introduce algún error el código?\\}
+			No introduce error. Esta función recibe un tercer parámetro que es
+			el tamaño máximo que la cadena final tendrá. En este caso, si buf
+			tuviera tamaño 12, no seria un problema porque vemos que como tercer
+			parámetro recibe el tamaño de la cadena destino, mas el tamaño de la
+			cadena fuente mas uno. Entonces como el tamaño máximo es mayor
+			tamaño de la cadena destino, se copia la cadena fuente a la destino.
+			\item \textit{Compilar el siguiente programa, y explicar por qué se
+			imprimen dos líneas distintas, en lugar de la misma dos veces:\\}
+\begin{lstlisting}
+	#include <stdio.h>
+	static void printf_sizeof_buf(char buf[256]) {
+		printf("sizeof buf = %zu\n", sizeof buf);
+	}
+	int main(void) {
+		char buf[256];
+		printf("sizeof buf = %zu\n", sizeof buf);
+		printf_sizeof_buf(buf);
+	}
+\end{lstlisting}
+			Esto es erróneo porque al tener como argumento char buf[256]
+			recibe como parámetro un puntero y a este le aplica el operador
+			size of, lo cual te da como resultado cuanto ocupa un puntero en
+			memoria. Que en general pueden ser 4 u 8 bytes. En cambio, el otro
+			caso funciona porque recibe como parámetro el puntero a un buffer y
+			lo que hace es calcular las distancia entre este puntero y el
+			ultimo caracter. Para que ambos resulten iguales la funcion
+			debiera tener como parametro char* buff solamente.
+		\end{itemize}
+	\section{Concurrencia cooperativa}
+		\subsection{Ej: kern2-swap}
+		\begin{itemize}
+			\item \textit{Explicar, para el stack de cada contador, cuántas
+			posiciones se asignan, y qué representa cada una.\\}
+			En el caso del segundo stack, se pasan los tres argumentos que la
+			función contador yield necesita, luego se pasa un puntero a la función
+			exit y luego un puntero a la función contador yield. Finalmente se
+			inicializan las cuatro posiciones siguientes donde se guardaran los
+			cuatro registros callee saved. Esto se hace porque cunado se cambia de
+			stack, este retira de la stack dichos registros. Por lo tanto
+			luego de ello apuntaría a contador yield
+			Cuando se hace el swap en la función task swap y se hace el switch
+			entre stacks, la stack actual apunta a la segunda stack. Le saca los
+			cuatro registros callee saved y queda apuntando a la función
+			contador yield. Por lo tanto cuando ejecuta la instrucción ret salta a
+			la función contador yield. En caso de que el segundo contador termine
+			antes, cuando termina el loop principal, salta a otra función de retorno
+			que en este caso es la que se guardo antes  y que seria exit.
+			En el caso del primer contador solo se guardan los tres parámetros. No
+			es necesario guardar direcciones de retorno ya que es con este stack que
+			se llama a la función, por lo tanto cuando se hace un call a
+			contador yield se guarda la dirección de retorno en la cuata posición
+			del stack.
+		\end{itemize}
 \end{document}
