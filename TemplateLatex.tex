@@ -1,0 +1,78 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[scale=1,angle=0,opacity=1,color=black!60]{background}
+\usepackage{tikzpagenodes}
+\usepackage{lastpage}
+\usepackage{lmodern}
+\usepackage{float}
+\usepackage[textwidth=420pt,textheight=630pt]{geometry}
+\setlength{\oddsidemargin}{15.5pt}
+%\usepackage[none]{hyphenat} %no cortar palabras
+
+\usepackage[spanish, activeacute]{babel} %Definir idioma español
+\usepackage[utf8]{inputenc} %Codificacion utf-8
+\backgroundsetup{contents={}} %Saca el 'draft'
+\definecolor{mygray}{rgb}{0.95,0.95,0.95}
+
+\usepackage{listings}
+\lstset{
+    basicstyle=\footnotesize,
+    backgroundcolor=\color{mygray},         
+    breaklines=true,
+    breakatwhitespace=true,   
+    postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},              
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=4,
+    language=C,
+    frame=none,
+    title=\lstname
+}
+
+\def\labelitemi{$\bullet$}
+
+\begin{document}		
+	% TÍTULO, AUTORES Y FECHA
+	\begin{titlepage}
+		\vspace*{\fill}
+		\begin{center}
+			\Large Materia \\
+			\Huge Asunto del TP \\
+			\bigskip\bigskip\bigskip
+			\large\textbf{Nombre y Apellido:} Martín Nicolás Pérez \\
+			\textbf{Padrón:} 97378 \\
+			\textbf{Fecha de Entrega:} Fecha de entrega\\
+					
+		\end{center}
+		\vspace*{\fill}
+	\end{titlepage}
+	\pagenumbering{arabic}
+	\newpage
+			
+	% ÍNDICE
+	\tableofcontents
+	\newpage
+	%\pagenumbering{arabic}
+	
+	\section{Primera seccion}
+		Texto.
+		\subsection{PrimeraSubseccion}
+		\textit{textoCursiva}
+		\bigskip\bigskip\bigskip
+		\lstinputlisting{arhcivoPrimeraSeccion}
+		Pie de Archivo o texto explicativo\\\\
+		
+		Ejemplo:
+		\lstinputlisting{examplePath.txt}
+		Texto de ejemplo o explicaciones del ejemplo\\\\
+
+	\newpage
+	\section{Anexo}
+		\lstinputlisting{archivo}
+		
+\end{document}
