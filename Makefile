@@ -30,4 +30,10 @@ gdb:
 clean:
 	rm -f kern2 *.o lib/*.o core
 
+informe:
+	pdflatex Caratula.tex
+	#pdflatex TemplateLatex.tex
+code:
+	./code.sh
+
 .PHONY: qemu qemu-gdb gdb
