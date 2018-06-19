@@ -267,4 +267,36 @@
 					funcion llamada pero no salva los caller saved y al volver
 					se podria perder si valor.\\
 			\end{itemize}
+		\subsection{Ej: kern2-div}
+		\begin{itemize}
+			Explicar el funcionamiento exacto de la línea asm(\ldots) del
+			punto anterior:\\
+\begin{lstlisting}
+	void kmain(const multiboot_info_t *mbi) {
+	int8_t linea;
+	uint8_t color;
+
+	// ...
+
+	idt_init();
+	irq_init();
+
+	asm("div %4"
+	: "=a"(linea), "=c"(color)
+	: "0"(18), "1"(0xE0), "b"(1), "d"(0));
+
+	vga_write2("Funciona vga_write2?", linea, color);
+	}
+
+\end{lstlisting}
+			\item \textit{¿qué cómputo se está realizando?\\}
+			Esta dividiendo \%eax por ebx que le asigna el valor uno\\
+			\item \textit{¿de dónde sale el valor de la variable color?\\}
+			El valor se lo asigna en caso de que la division haya sido exitosa
+			y el valor sale del primer registro "1"(0xE0) por eso.\\
+			\item \textit{¿por qué se da valor 0 a \%edx?\\}
+			Se le da valor cero porque el resto se la division se produce entre
+			EDX:EAX t el EBX.\\
+			REVISAR RESPUESTAS, NO SE SI ESTAN BIEN\\
+		\end{itemize}
 \end{document}
