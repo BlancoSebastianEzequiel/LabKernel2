@@ -181,4 +181,81 @@
 			contador\_yield se guarda la dirección de retorno en la cuata posición
 			del stack.
 		\end{itemize}
+	\section{Interrupciones: reloj y teclado}
+		\subsection{Ej: kern2-idt}
+		\begin{itemize}
+			\item \textit{¿Cuántos bytes ocupa una entrada en la IDT?\\}
+			Aqui la respuesta\\
+			\item \textit{¿Cuántas entradas como máximo puede albergar la IDT?\\}
+			Aqui la respuesta\\
+			\item \textit{¿Cuál es el valor máximo aceptable para el campo limit
+			del registro IDTR?\\}
+			Aqui la respuesta\\
+			\item \textit{Indicar qué valor exacto tomará el campo limit para
+			una IDT de 64 descriptores solamente.\\}
+			Aqui la respuesta\\
+			\item \textit{Consultar la sección 6.1 y explicar la diferencia
+			entre interrupciones (§6.3) y excepciones (§6.4).\\}
+			Aqui la respuesta\\
+		\end{itemize}
+		\subsection{Ej: kern2-isr}
+			\subsubsection{Sesión de GDB}
+			Se debe seguir el mismo guión dos veces:\\
+			\begin{itemize}
+				\item \textit{versión A: usando esta implementación aumentada
+				del manejador:}
+\begin{lstlisting}
+	.globl breakpoint
+	breakpoint:
+	nop
+	test %eax, %eax
+	iret
+\end{lstlisting}
+				Aqui la sesion de gdb\\
+				\item \textit{Versión B: con el mismo manejador, pero cambiando
+				la instrucción IRET por una instrucción RET.}
+				Aqui la sesion de gdb\\
+				\item \textit{Para cada una de las siguientes maneras de
+				guardar/restaurar registros en breakpoint, indicar si es
+				correcto (en el sentido de hacer su ejecución “invisible”), y
+				justificar por qué:}
+				\begin{itemize}
+					\item Opcion A
+\begin{lstlisting}
+	breakpoint:
+	pusha
+
+	call vga_write2
+	popa
+	iret
+\end{lstlisting}
+					\item Opcion B
+\begin{lstlisting}
+	breakpoint:
+	push %eax
+	push %edx
+	push %ecx
+
+	call vga_write2
+	pop %ecx
+	pop %edx
+	pop %eax
+	iret
+\end{lstlisting}
+					\item Opcion C
+\begin{lstlisting}
+	breakpoint:
+	push %ebx
+	push %esi
+	push %edi
+
+	call vga_write2
+	pop %edi
+	pop %esi
+	pop %ebx
+	iret
+\end{lstlisting}
+\end{itemize}
+					Aqui la explicacion\\
+			\end{itemize}
 \end{document}
