@@ -257,6 +257,14 @@
 	iret
 \end{lstlisting}
 \end{itemize}
-					Aqui la explicacion\\
+					La correcta es la opcion B, ya que al llamar a la funcion,
+					se supone que los registros callee saved, son salvados de
+					manera tal que al volver de la funcion, estos mantienen
+					su valor. En cambio, los registros caller saved no. Por lo
+					tanto, la opcion A hace trabajo de mas al salvar todos los
+					registros y la C no funcionaria ya que salva los registros
+					callee saved que no es necesario ya que de eso se encarga la
+					funcion llamada pero no salva los caller saved y al volver
+					se podria perder si valor.\\
 			\end{itemize}
 \end{document}
