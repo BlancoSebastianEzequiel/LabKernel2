@@ -302,8 +302,7 @@
 			\end{itemize}
 		\subsection{Ej: kern2-div}
 		\begin{itemize}
-			Explicar el funcionamiento exacto de la línea asm(\ldots) del
-			punto anterior:\\
+			Explicar el funcionamiento exacto de la línea asm(\ldots):\\
 \begin{lstlisting}
 	void kmain(const multiboot_info_t *mbi) {
 	int8_t linea;
@@ -323,7 +322,7 @@
 
 \end{lstlisting}
 			\item \textit{¿qué cómputo se está realizando?\\}
-			Esta dividiendo \%eax por ebx que le asigna el valor uno\\
+			Esta dividiendo \%eax por \%ebx que le asigna el valor uno\\
 			\item \textit{¿de dónde sale el valor de la variable color?\\}
 			El valor se lo asigna en caso de que la division haya sido exitosa
 			y el valor sale del primer registro "1"(0xE0) por eso.\\
