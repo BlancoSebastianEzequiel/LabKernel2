@@ -31,7 +31,7 @@
     tabsize=4,
     language=C,
     frame=none,
-	title=\lstname
+	title=\lstname,
 }
 
 \def\labelitemi{$\bullet$}
@@ -94,24 +94,30 @@
 			\item \textit{Finalmente: mostrar en una sesión de GDB los valores
 			de esp y eip al entrar en kmain, así como los valores almacenados
 			en el stack en ese momento.\\}
-			gdb -q -s kern2 -n -ex 'target remote 127.0.0.1:7508'\\
-			Leyendo símbolos desde kern2 \ldots hecho.\\
-			Remote debugging using 127.0.0.1:7508\\
-			0x0000fff0 in ?? ()\\
-			(gdb) b kmain\\
-			Punto de interrupción 1 at 0x100129: file kern2.c, line 61.\\
-			(gdb) p \$esp\\
-			\$1 = (void *) 0x0\\
-			(gdb) p/x \$eip\\
-			\$3 = 0xfff0\\
-			(gdb) info frame\\
-			Stack level 0, frame at 0x0:\\
-			eip = 0xfff0; saved eip = <unavailable>\\
-			Outermost frame: outermost\\
-			Arglist at unknown address.\\
-			Locals at unknown address, Previous frame's sp in esp\\
+\begin{lstlisting}[
+	columns=fullflexible,
+	basicstyle=\fontfamily{lmvtt}\selectfont,
+]
+	$ make gdb
+	gdb -q -s kern2 -n -ex 'target remote 127.0.0.1:7508'
+	Leyendo simbolos desde kern2... hecho.
+	Remote debugging using 127.0.0.1:7508
+	0x0000fff0 in ?? ()
+	(gdb) b kmain
+	Punto de interrupcion 1 at 0x100129: file kern2.c, line 61.
+	(gdb) p $esp
+	$1 = (void *) 0x0
+	(gdb) p/x $eip
+	$3 = 0xfff0
+	(gdb) info frame
+	Stack level 0, frame at 0x0:
+	eip = 0xfff0; saved eip = <unavailable>
+	Outermost frame: outermost
+	Arglist at unknown address.
+	Locals at unknown address, Previous frame's sp in esp
+\end{lstlisting}
 		\end{itemize}
-
+		% EJ: KERN2 CMDLINE
 		\subsection{Ej: kern2-cmdline}
 		\begin{itemize}
 			\item \textit{Mostrar cómo implementar la misma concatenación, de
