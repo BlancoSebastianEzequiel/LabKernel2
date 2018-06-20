@@ -3,6 +3,7 @@
 #include "lib/string.h"
 #include "lib/stddef.h"
 #include "interrupts.h"
+#include "sched.h"
 
 #define USTACK_SIZE 4096
 static uint8_t stack1[USTACK_SIZE] __attribute__((aligned(4096)));
@@ -66,7 +67,14 @@ void kmain(const multiboot_info_t *mbi) {
     two_stacks_c();
 
     contador_run();  // Nueva llamada ej. kern2-swap.
-    
+
+    /*
+     * Por último, como “bootstrap” del planificador, se necesita una llamada a
+     * la función sched_init() desde kmain(), antes de las llamadas a
+     * idt_init()/irq_init(). Esto se necesita para que haya una tarea inicial
+     * en ejecución.
+    */
+    sched_init();  // Desalojo: Ej: kern2-task
     // Código ejercicio kern2-idt.
     idt_init();   // (a)
     irq_init();   // Ej: kern2-irq
