@@ -76,7 +76,7 @@ void kmain(const multiboot_info_t *mbi) {
     sched_init();  // Desalojo: Ej: kern2-task
     // Código ejercicio kern2-idt.
     idt_init();   // (a)
-    irq_init();   // Ej: kern2-irq
+    irq_init();   // Ej: kern2-irq   comentar para sesion
     asm("int3");  // (b)
 
     /* Ej: kern2-div */
