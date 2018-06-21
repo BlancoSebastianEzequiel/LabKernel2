@@ -29,12 +29,12 @@ gdb:
 
 clean:
 	rm -f kern2 *.o lib/*.o core
+	rm informe.toc
+	rm informe.aux
+	rm informe.log
 
 informe:
 	pdflatex informe.tex
-	#rm informe.log
-	#rm informe.aux
-	#rm informe.toc
 	clear
 code:
 	./code.sh
