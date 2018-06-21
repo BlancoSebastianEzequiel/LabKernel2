@@ -15,6 +15,15 @@ void sched_init() {
     current->status = RUNNING;
 }
 //------------------------------------------------------------------------------
+// PRINT
+//------------------------------------------------------------------------------
+void print(uint64_t value, int8_t line) {
+    char buf[256];
+    fmt_int(value, buf, 256);
+    vga_write(buf, line, 0x2F);
+    buf[0] = '\0';
+}
+//------------------------------------------------------------------------------
 // SPAWN
 //------------------------------------------------------------------------------
 void spawn(void (*entry)(void)) {
@@ -31,10 +40,45 @@ void spawn(void (*entry)(void)) {
         En particular %eflags debe contener el flag IF, o las interrupciones de
         reloj no se habilitarán al entrar la tarea en ejecución.
     */
+    /*
+    Te respondo por partes:
+
+        El entry point se coloca, de manera similar a ejercicios anteriores,
+        para que ret/iret funcione: “en el tope de la pila una vez hecho pop de
+        los registros de propósito general.”
+
+        En este caso es más fácil porque tenés el miembro “eip” del struct
+        diciéndote dónde hay que almacenarlo.
+
+        Fijate que el “taskframe” es siempre un puntero, y siempre apuntará a
+        alguna región de la pila.
+
+        Dicho de otra manera: en ejercicios anteriores, para todas las tareas
+        tuvimos que reservar un stack; en este ejercicio, se reserva
+        directamente como parte del struct (podría haber sido en cualquier otro
+        sitio, pero esto es más fácil).
+
+        Cuando sched() recibe un puntero a TaskFrame, podés imaginar también que
+        recibiera un void* o un uintptr_t*: lo que recibe es el puntero al tope
+        de la pila. Ocurre que, en esta configuración, el tope de la pila de una
+        tarea que no está en ejecucións siempre “coincide” con un TaskFrame, de
+        ahí su uso.
+
+        Técnicamente sched() no necesita que sea un TaskFrame*.
+
+        Espero que esto ayude a aclarar tus dudas, para nuevas consultas no
+        dudes en escribirnos de nuevo.
+    */
     int i = 0;
     while (Tasks[i].status != FREE) i++;
     if (i == MAX_TASK) return;
     Tasks[i].status = READY;
+    uint8_t* stack = &Tasks[i].stack[USTACK_SIZE];
+    // cada uint32_t son cuatro casilleros de uint8_t y ademas son 11 porque
+    //  uint16_t cs y uint16_t padding cuentan como uno de uint32_t
+    size_t size = sizeof(struct TaskFrame);  // size deberia ser 44 = 11*4
+    stack -= size;
+    Tasks[i].frame = (struct TaskFrame *) (stack);
     Tasks[i].frame->edi = 0;
     Tasks[i].frame->esi = 0;
     Tasks[i].frame->ebp = 0;
@@ -44,29 +88,8 @@ void spawn(void (*entry)(void)) {
     Tasks[i].frame->ecx = 0;
     Tasks[i].frame->eax = 0;
     Tasks[i].frame->padding = 0;
-    uint32_t eflag = Tasks[i].frame->eflags;
-    if (!(eflag & IF)) Tasks[i].frame->eflags = eflag | IF;
-    uint8_t* stack = &Tasks[i].stack[USTACK_SIZE];
-    stack -= 10;
-    stack[0] = (uint8_t) 0;
-    stack[1] = (uint8_t) entry;
-    stack[2] = (uint8_t) Tasks[i].frame->edi;
-    stack[3] = (uint8_t) Tasks[i].frame->esi;
-    stack[4] = (uint8_t) Tasks[i].frame->ebp;
-    stack[5] = (uint8_t) Tasks[i].frame->esp;
-    stack[6] = (uint8_t) Tasks[i].frame->ebx;
-    stack[7] = (uint8_t) Tasks[i].frame->edx;
-    stack[8] = (uint8_t) Tasks[i].frame->ecx;
-    stack[9] = (uint8_t) Tasks[i].frame->eax;
-}
-//------------------------------------------------------------------------------
-// PRINT
-//------------------------------------------------------------------------------
-void print(uint64_t value, int8_t line) {
-    char buf[256];
-    fmt_int(value, buf, 256);
-    vga_write(buf, line, 0x2F);
-    buf[0] = '\0';
+    Tasks[i].frame->eflags = Tasks[i].frame->eflags | IF;
+    Tasks[i].frame->eip = (uint32_t) entry;
 }
 //------------------------------------------------------------------------------
 // SCHED
