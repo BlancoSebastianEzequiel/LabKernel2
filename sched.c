@@ -51,7 +51,7 @@ void spawn(void (*entry)(void)) {
     Tasks[i].frame->padding = 0;
     Tasks[i].frame->eflags = Tasks[i].frame->eflags | IF;
     Tasks[i].frame->eip = (uint32_t) entry;
-    //  frame->cs tiene que tener el mismo valor que “segment” en idt_install().
+    // frame->cs tiene que tener el mismo valor que “segment” en idt_install().
     // Multiboot siempre define "8" como el segmento de código.
     // (Ver campo CS en `info registers` de QEMU.)
     static const uint8_t KSEG_CODE = 8;
