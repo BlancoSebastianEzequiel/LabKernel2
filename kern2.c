@@ -62,7 +62,6 @@ void two_stacks_c() {
 void kmain(const multiboot_info_t *mbi) {
     if (mbi == NULL) vga_write("mbi == NULL", 10, 0x70);
     vga_write("kern2 loading.............", 8, 0x70);
-
     two_stacks();
     two_stacks_c();
 
