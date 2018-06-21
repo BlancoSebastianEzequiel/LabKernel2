@@ -31,10 +31,10 @@ clean:
 	rm -f kern2 *.o lib/*.o core
 
 informe:
-	pdflatex TemplateLatex.tex
-	#rm TemplateLatex.log
-	#rm TemplateLatex.aux
-	#rm TemplateLatex.toc
+	pdflatex informe.tex
+	#rm informe.log
+	#rm informe.aux
+	#rm informe.toc
 	clear
 code:
 	./code.sh
