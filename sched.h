@@ -3,8 +3,7 @@
 
 #include "lib/stdint.h"
 
-// IF Bandera de interrupción habilitada (bit 9: 0010 0000 0000)
-#define IF 0x200
+#define USTACK_SIZE 4096
 
 enum TaskStatus {
     FREE = 0,
@@ -30,7 +29,7 @@ struct TaskFrame {
 } __attribute__((packed));
 
 struct Task {
-    uint8_t stack[4096];
+    uint8_t stack[USTACK_SIZE];
     enum TaskStatus status;
     struct TaskFrame *frame;
 };
@@ -38,6 +37,5 @@ struct Task {
 void sched_init();
 void spawn(void (*entry)(void));
 void sched(struct TaskFrame *tf);
-
 
 #endif

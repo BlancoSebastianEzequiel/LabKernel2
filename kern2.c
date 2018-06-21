@@ -89,6 +89,8 @@ void kmain(const multiboot_info_t *mbi) {
     vga_write2("Funciona vga_write2?", linea, color);
     /* Ej: kern2-div */
 
+    contador_spawn();
+
     if (mbi->flags & MULTIBOOT_INFO_CMDLINE) {
         char buf[256] = "cmdline: ";
         char *cmdline = (void *) mbi->cmdline;
