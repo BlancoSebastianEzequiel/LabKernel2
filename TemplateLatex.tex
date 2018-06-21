@@ -100,21 +100,29 @@
 ]
 	$ make gdb
 	gdb -q -s kern2 -n -ex 'target remote 127.0.0.1:7508'
-	Leyendo simbolos desde kern2... hecho.
+	Leyendo simbolos desde kern2...hecho.
 	Remote debugging using 127.0.0.1:7508
 	0x0000fff0 in ?? ()
 	(gdb) b kmain
-	Punto de interrupcion 1 at 0x100129: file kern2.c, line 61.
+	Punto de interrupcion 1 at 0x100129: file kern2.c, line 62.
+	(gdb) c
+	Continuando.
+
+	Breakpoint 1, kmain (mbi=0x9500) at kern2.c:62
+	62	void kmain(const multiboot_info_t *mbi) {
 	(gdb) p $esp
-	$1 = (void *) 0x0
+	$1 = (void *) 0x104ff4
 	(gdb) p/x $eip
-	$3 = 0xfff0
+	$2 = 0x100129
 	(gdb) info frame
-	Stack level 0, frame at 0x0:
-	eip = 0xfff0; saved eip = <unavailable>
-	Outermost frame: outermost
-	Arglist at unknown address.
-	Locals at unknown address, Previous frame's sp in esp
+	Stack level 0, frame at 0x104ff8:
+	eip = 0x100129 in kmain (kern2.c:62); saved eip = 0x10002d
+	called by frame at 0x104ffc
+	source language c.
+	Arglist at 0x104ff0, args: mbi=0x9500
+	Locals at 0x104ff0, Previous frame's sp is 0x104ff8
+	Saved registers:
+	eip at 0x104ff4
 \end{lstlisting}
 		\end{itemize}
 		% EJ: KERN2 CMDLINE
@@ -198,57 +206,260 @@
 			descriptores.\\
 			\item \textit{¿Cuál es el valor máximo aceptable para el campo limit
 			del registro IDTR?\\}
-			El valor máximo aceptable para el campo limit depende de la cantidad de descriptores válidos
-			requeridos para representar las interrupciones y excepciones que pueden llegar a ocurrir.
+			El valor máximo aceptable para el campo limit depende de la cantidad
+			de descriptores válidos
+			requeridos para representar las interrupciones y excepciones que
+			pueden llegar a ocurrir.
 			Debería ser (8*N - 1), expresado en bytes.
 			Siendo N la cantidad de entradas de la IDT, el valor 8 refiere 
 			a el tamaño fijo de las entradas de la tabla.
-			Todos los descriptores vacios deben tener el flag present seteado en 0.\\
+			Todos los descriptores vacios deben tener el flag present seteado
+			en 0.\\
 			\item \textit{Indicar qué valor exacto tomará el campo limit para
 			una IDT de 64 descriptores solamente.\\}
-			Con una IDT de 64 descriptores el valor del campo limit será ((8 * 64) -1) = 511\\
+			Con una IDT de 64 descriptores el valor del campo limit será
+			((8 * 64) -1) = 511\\
 			\item \textit{Consultar la sección 6.1 y explicar la diferencia
 			entre interrupciones (§6.3) y excepciones (§6.4).\\}
-			Las interrupciones y las excepciones son eventos externos al procesador son eventos externos
+			Las interrupciones y las excepciones son eventos externos al
+			procesador son eventos externos
 			al procesador, que requieren la atencion del mismo para ser manejadas.
 
-			A primera vista, las diferencias entre interrupciones y excepciones radican en el origen y finalidad
-			de las mismas.
+			A primera vista, las diferencias entre interrupciones y excepciones
+			radican en el origen y finalidad de las mismas.
 
-			Las interrupciones ocurren en momentos randoms de los programas y responden a señales externas al sistema.
-			Estas señales son generadas tanto por el Hardware, por ejemplo para que el procesador responda al pedido del 
-			teclado para detectar el ingreso de entrada de datos, o bien por el Software, mediante la ejecución de la 
-			instrucción INT.
+			Las interrupciones ocurren en momentos randoms de los programas y
+			responden a señales externas al sistema.
+			Estas señales son generadas tanto por el Hardware, por ejemplo para
+			que el procesador responda al pedido del teclado para detectar el
+			ingreso de entrada de datos, o bien por el Software, mediante la
+			ejecución de la instrucción INT.
 
-			Las excepciones ocurren cuando el procesador encuentra un problema en la ejecución de una instrucción, 
-			por ejemplo dividir por cero, page faults, violaciones de protección, etc. En las arquitecturas \textit{Machine-Check}, 
-			tambien es posible que se generen excepciones generadas por errores internos del Hardware o 
-			errores de Bug, llamadas \textit{Machine-Check Exceptions}.\\
+			Las excepciones ocurren cuando el procesador encuentra un problema
+			en la ejecución de una instrucción, por ejemplo dividir por cero,
+			page faults, violaciones de protección, etc. En las arquitecturas
+			\textit{Machine-Check}, tambien es posible que se generen excepciones
+			generadas por errores internos del Hardware o errores de Bug,
+			llamadas \textit{Machine-Check Exceptions}.\\
 		\end{itemize}
 		\subsection{Ej: kern2-isr}
 			\subsubsection{Sesión de GDB}
 			Se debe seguir el mismo guión dos veces:\\
-			\begin{itemize}
-				\item \textit{versión A: usando esta implementación aumentada
-				del manejador:}
 \begin{lstlisting}
-	.globl breakpoint
-	breakpoint:
+.globl breakpoint
+breakpoint:
 	nop
 	test %eax, %eax
 	iret
 \end{lstlisting}
-				Aqui la sesion de gdb\\
+			\begin{itemize}
+				\item \textit{versión A: usando la implementación aumentada
+				del manejador:}
+% SESION DE GDB VERSION A
+\begin{lstlisting}[
+columns=fullflexible,
+basicstyle=\fontfamily{lmvtt}\selectfont,
+]
+	0x0000fff0 in ?? ()
+	(gdb) display/i $pc
+	1: x/i $pc
+	=> 0xfff0:	add    %al,(%eax)
+	(gdb) b idt_init
+	Punto de interrupcion 1 at 0x100586: file interrupts.c, line 27.
+	(gdb) c
+	Continuando.
+
+	Breakpoint 1, idt_init () at interrupts.c:27
+	27	    idt_install(T_BRKPT, breakpoint);
+	1: x/i $pc
+	=> 0x100586 <idt_init+3>:	push   $0x1000a8
+	(gdb) finish
+	Correr hasta la salida desde #0  idt_init () at interrupts.c:27
+	kmain (mbi=0x9500) at kern2.c:73
+	73	    asm("int3");  // (b)
+	1: x/i $pc
+	=> 0x100193 <kmain+76>:	int3
+	(gdb) x/10i $pc
+	=> 0x100193 <kmain+76>:	int3
+	0x100194 <kmain+77>:	mov    $0x0,%edx
+	0x100199 <kmain+82>:	mov    $0xe0,%ecx
+	0x10019e <kmain+87>:	mov    $0x12,%eax
+	0x1001a3 <kmain+92>:	mov    %edx,%ebx
+	0x1001a5 <kmain+94>:	div    %ebx
+	0x1001a7 <kmain+96>:	movzbl %cl,%ecx
+	0x1001aa <kmain+99>:	movsbl %al,%edx
+	0x1001ad <kmain+102>:	mov    $0x100f77,%eax
+	0x1001b2 <kmain+107>:	call   0x10009b <vga_write2>
+	(gdb) print $esp
+	$1 = (void *) 0x104d78
+	(gdb) x/xw $esp
+	0x104d78:	0x00100f5c
+	(gdb) print $cs
+	$2 = 8
+	(gdb) print $eflags
+	$3 = [ ]
+	(gdb) print/x $eflags
+	$4 = 0x2
+	(gdb) stepi
+	breakpoint () at idt_entry.S:17
+	17	        test %eax, %eax
+	1: x/i $pc
+	=> 0x1000a9 <breakpoint+1>:	test   %eax,%eax
+	(gdb) print $esp
+	$5 = (void *) 0x104d6c
+\end{lstlisting}
+				\item \textit{¿Cuantas posiciones avanzo?}
+				Avanzo 12 posiciones
+\begin{lstlisting}[
+columns=fullflexible,
+basicstyle=\fontfamily{lmvtt}\selectfont,
+]
+	(gdb) x/12wx $sp
+	0x104d6c:	0x00100194	0x00000008	0x00000002	0x00100f5c
+	0x104d7c:	0x00000008	0x00000070	0x00000000	0x00000000
+	0x104d8c:	0x00000000	0x00000000	0x00000000	0x00000000
+	(gdb) print $eflags
+	$6 = [ ]
+	(gdb) print/x $eflags
+	$7 = 0x2
+	(gdb) stepi
+	18	        iret
+	1: x/i $pc
+	=> 0x1000ab <breakpoint+3>:	iret
+	(gdb) print $eflags
+	$8 = [ PF ZF ]
+	(gdb) print/x $eflags
+	$9 = 0x46
+	(gdb) stepi
+	kmain (mbi=0x9500) at kern2.c:78
+	78	    asm("div %4"
+	1: x/i $pc
+	=> 0x100194 <kmain+77>:	mov    $0x0,%edx
+	(gdb) x/10i $pc
+	=> 0x100194 <kmain+77>:	mov    $0x0,%edx
+	0x100199 <kmain+82>:	mov    $0xe0,%ecx
+	0x10019e <kmain+87>:	mov    $0x12,%eax
+	0x1001a3 <kmain+92>:	mov    %edx,%ebx
+	0x1001a5 <kmain+94>:	div    %ebx
+	0x1001a7 <kmain+96>:	movzbl %cl,%ecx
+	0x1001aa <kmain+99>:	movsbl %al,%edx
+	0x1001ad <kmain+102>:	mov    $0x100f77,%eax
+	0x1001b2 <kmain+107>:	call   0x10009b <vga_write2>
+	0x1001b7 <kmain+112>:	add    $0x10,%esp
+	(gdb) print $esp
+	$12 = (void *) 0x104d78
+	(gdb) x/xw $esp
+	0x104d78:	0x00100f5c
+	(gdb) print $cs
+	$13 = 8
+	(gdb) print $eflags
+	$10 = [ ]
+	(gdb) print/x $eflags
+	$11 = 0x2
+\end{lstlisting}
 				\item \textit{Versión B: con el mismo manejador, pero cambiando
 				la instrucción IRET por una instrucción RET.\\}
-				Aqui la sesion de gdb\\
-				Acordate que tenes que usar ese breakpoint para hacer gdb. Asi
-				que tendrias que comentar el breakpoint actual , usar ese para
-				hacer gdb , copialo como hice yo en el gdb que hice de mas
-				arriba, que me costo hacer que compilara en latex jaja porque
-				hay simbolos como los acentos que los tenes que sacar para
-				escribirlo como hice yo (lstlisting) y  despues pone el
-				breakpoint original. \\
+\begin{lstlisting}[
+columns=fullflexible,
+basicstyle=\fontfamily{lmvtt}\selectfont,
+]
+	0x0000fff0 in ?? ()
+	(gdb) display/i $pc
+	1: x/i $pc
+	=> 0xfff0:	add    %al,(%eax)
+	(gdb) b idt_init
+	Punto de interrupcion 1 at 0x100586: file interrupts.c, line 27.
+	(gdb) c
+	Continuando.
+
+	Breakpoint 1, idt_init () at interrupts.c:27
+	27	    idt_install(T_BRKPT, breakpoint);
+	1: x/i $pc
+	=> 0x100586 <idt_init+3>:	push   $0x1000a8
+	(gdb) finish
+	Correr hasta la salida desde #0  idt_init () at interrupts.c:27
+	kmain (mbi=0x9500) at kern2.c:73
+	73	    asm("int3");  // (b)
+	1: x/i $pc
+	=> 0x100193 <kmain+76>:	int3
+	(gdb) x/10i $pc
+	=> 0x100193 <kmain+76>:	int3
+	0x100194 <kmain+77>:	mov    $0x0,%edx
+	0x100199 <kmain+82>:	mov    $0xe0,%ecx
+	0x10019e <kmain+87>:	mov    $0x12,%eax
+	0x1001a3 <kmain+92>:	mov    %edx,%ebx
+	0x1001a5 <kmain+94>:	div    %ebx
+	0x1001a7 <kmain+96>:	movzbl %cl,%ecx
+	0x1001aa <kmain+99>:	movsbl %al,%edx
+	0x1001ad <kmain+102>:	mov    $0x100f77,%eax
+	0x1001b2 <kmain+107>:	call   0x10009b <vga_write2>
+	(gdb) print $esp
+	$1 = (void *) 0x104d78
+	(gdb) x/xw $esp
+	0x104d78:	0x00100f5c
+	(gdb) print $cs
+	$2 = 8
+	(gdb) print $eflags
+	$3 = [ ]
+	(gdb) print/x $eflags
+	$4 = 0x2
+	(gdb) stepi
+	breakpoint () at idt_entry.S:26
+	26	        test %eax, %eax
+	1: x/i $pc
+	=> 0x1000a9 <breakpoint+1>:	test   %eax,%eax
+	(gdb) print $esp
+	$5 = (void *) 0x104d6c
+\end{lstlisting}
+				\item \textit{¿Cuantas posiciones avanzo?}
+				Avanzo 12 posiciones
+\begin{lstlisting}[
+columns=fullflexible,
+basicstyle=\fontfamily{lmvtt}\selectfont,
+]
+	(gdb) x/12wx $sp
+	0x104d6c:	0x00100194	0x00000008	0x00000002	0x00100f5c
+	0x104d7c:	0x00000008	0x00000070	0x00000000	0x00000000
+	0x104d8c:	0x00000000	0x00000000	0x00000000	0x00000000
+	(gdb) print $eflags
+	$6 = [ ]
+	(gdb) print/x $eflags
+	$7 = 0x2
+	(gdb) stepi
+	27	        ret
+	1: x/i $pc
+	=> 0x1000ab <breakpoint+3>:	ret
+	(gdb) print $eflags
+	$8 = [ PF ZF ]
+	(gdb) print/x $eflags
+	$9 = 0x46
+	(gdb) stepi
+	kmain (mbi=0x9500) at kern2.c:78
+	78	    asm("div %4"
+	1: x/i $pc
+	=> 0x100194 <kmain+77>:	mov    $0x0,%edx
+	(gdb) x/10i $pc
+	=> 0x100194 <kmain+77>:	mov    $0x0,%edx
+	0x100199 <kmain+82>:	mov    $0xe0,%ecx
+	0x10019e <kmain+87>:	mov    $0x12,%eax
+	0x1001a3 <kmain+92>:	mov    %edx,%ebx
+	0x1001a5 <kmain+94>:	div    %ebx
+	0x1001a7 <kmain+96>:	movzbl %cl,%ecx
+	0x1001aa <kmain+99>:	movsbl %al,%edx
+	0x1001ad <kmain+102>:	mov    $0x100f77,%eax
+	0x1001b2 <kmain+107>:	call   0x10009b <vga_write2>
+	0x1001b7 <kmain+112>:	add    $0x10,%esp
+	(gdb) print $esp
+	$10 = (void *) 0x104d70
+	(gdb) x/xw $esp
+	0x104d70:	0x00000008
+	(gdb) print $cs
+	$11 = 8
+	(gdb) print $eflags
+	$12 = [ PF ZF ]
+	(gdb) print/x $eflags
+	$13 = 0x46
+\end{lstlisting}
 \item \textit{Para cada una de las siguientes maneras de
 				guardar/restaurar registros en breakpoint, indicar si es
 				correcto (en el sentido de hacer su ejecución “invisible”), y
@@ -329,6 +540,5 @@
 			\item \textit{¿por qué se da valor 0 a \%edx?\\}
 			Se le da valor cero porque el resto de la division se produce entre
 			EDX:EAX y el EBX.\\
-			REVISAR RESPUESTAS, NO SE SI ESTAN BIEN\\
 		\end{itemize}
 \end{document}
