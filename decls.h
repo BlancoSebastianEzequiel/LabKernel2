@@ -47,7 +47,7 @@ __attribute__((regparm(3))) void vga_write2(
 // write.c
 void vga_write(const char *s, int8_t linea, uint8_t color);
 bool fmt_int(uint64_t val, char *s, size_t bufsize);
-
+void print(uint64_t value, int8_t line);
 __attribute__((regparm(2))) void vga_write_cyan(const char *s, int8_t linea);
 
 #endif

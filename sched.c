@@ -1,8 +1,10 @@
+#include "lib/stdbool.h"
+#include "lib/stddef.h"
 #include "decls.h"
 #include "sched.h"
 
 #define MAX_TASK 10
-// IF Bandera de interrupción habilitada (bit 9: 0010 0000 0000)
+// IF Bandera de interrupcion habilitada (bit 9: 0010 0000 0000)
 #define IF 0x200
 
 static struct Task Tasks[MAX_TASK];
@@ -13,15 +15,6 @@ static struct Task *current;
 void sched_init() {
     current = &Tasks[0];
     current->status = RUNNING;
-}
-//------------------------------------------------------------------------------
-// PRINT
-//------------------------------------------------------------------------------
-void print(uint64_t value, int8_t line) {
-    char buf[256];
-    fmt_int(value, buf, 256);
-    vga_write(buf, line, 0x2F);
-    buf[0] = '\0';
 }
 //------------------------------------------------------------------------------
 // SPAWN
