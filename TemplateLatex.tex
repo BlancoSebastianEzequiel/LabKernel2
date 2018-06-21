@@ -192,18 +192,38 @@
 		\subsection{Ej: kern2-idt}
 		\begin{itemize}
 			\item \textit{¿Cuántos bytes ocupa una entrada en la IDT?\\}
-			Aqui la respuesta\\
+			Una entrada en la IDT tiene un tamaño fijo de 8 bytes.\\
 			\item \textit{¿Cuántas entradas como máximo puede albergar la IDT?\\}
-			Aqui la respuesta\\
+			Como máximo la IDT puede albergar 256 entradas, a estas se las conoce como
+			descriptores.\\
 			\item \textit{¿Cuál es el valor máximo aceptable para el campo limit
 			del registro IDTR?\\}
-			Aqui la respuesta\\
+			El valor máximo aceptable para el campo limit depende de la cantidad de descriptores válidos
+			requeridos para representar las interrupciones y excepciones que pueden llegar a ocurrir.
+			Debería ser (8*N - 1), expresado en bytes.
+			Siendo N la cantidad de entradas de la IDT, el valor 8 refiere 
+			a el tamaño fijo de las entradas de la tabla.
+			Todos los descriptores vacios deben tener el flag present seteado en 0.\\
 			\item \textit{Indicar qué valor exacto tomará el campo limit para
 			una IDT de 64 descriptores solamente.\\}
-			Aqui la respuesta\\
+			Con una IDT de 64 descriptores el valor del campo limit será ((8 * 64) -1) = 511\\
 			\item \textit{Consultar la sección 6.1 y explicar la diferencia
 			entre interrupciones (§6.3) y excepciones (§6.4).\\}
-			Aqui la respuesta\\
+			Las interrupciones y las excepciones son eventos externos al procesador son eventos externos
+			al procesador, que requieren la atencion del mismo para ser manejadas.
+
+			A primera vista, las diferencias entre interrupciones y excepciones radican en el origen y finalidad
+			de las mismas.
+
+			Las interrupciones ocurren en momentos randoms de los programas y responden a señales externas al sistema.
+			Estas señales son generadas tanto por el Hardware, por ejemplo para que el procesador responda al pedido del 
+			teclado para detectar el ingreso de entrada de datos, o bien por el Software, mediante la ejecución de la 
+			instrucción INT.
+
+			Las excepciones ocurren cuando el procesador encuentra un problema en la ejecución de una instrucción, 
+			por ejemplo dividir por cero, page faults, violaciones de protección, etc. En las arquitecturas \textit{Machine-Check}, 
+			tambien es posible que se generen excepciones generadas por errores internos del Hardware o 
+			errores de Bug, llamadas \textit{Machine-Check Exceptions}.\\
 		\end{itemize}
 		\subsection{Ej: kern2-isr}
 			\subsubsection{Sesión de GDB}
@@ -282,8 +302,7 @@
 			\end{itemize}
 		\subsection{Ej: kern2-div}
 		\begin{itemize}
-			Explicar el funcionamiento exacto de la línea asm(\ldots) del
-			punto anterior:\\
+			Explicar el funcionamiento exacto de la línea asm(\ldots):\\
 \begin{lstlisting}
 	void kmain(const multiboot_info_t *mbi) {
 	int8_t linea;
@@ -303,7 +322,7 @@
 
 \end{lstlisting}
 			\item \textit{¿qué cómputo se está realizando?\\}
-			Esta dividiendo \%eax por ebx que le asigna el valor uno\\
+			Esta dividiendo \%eax por \%ebx que le asigna el valor uno\\
 			\item \textit{¿de dónde sale el valor de la variable color?\\}
 			El valor se lo asigna en caso de que la division haya sido exitosa
 			y el valor sale del primer registro "1"(0xE0) por eso.\\

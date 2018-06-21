@@ -1,0 +1,93 @@
+Sesion A GBD
+
+0x0000fff0 in ?? ()
+(gdb) display/i $pc
+1: x/i $pc
+=> 0xfff0:	add    %al,(%eax)
+(gdb) b idt_init
+Punto de interrupción 1 at 0x100586: file interrupts.c, line 27.
+(gdb) c
+Continuando.
+
+Breakpoint 1, idt_init () at interrupts.c:27
+27	    idt_install(T_BRKPT, breakpoint);
+1: x/i $pc
+=> 0x100586 <idt_init+3>:	push   $0x1000a8
+(gdb) finish
+Correr hasta la salida desde #0  idt_init () at interrupts.c:27
+kmain (mbi=0x9500) at kern2.c:73
+73	    asm("int3");  // (b)
+1: x/i $pc
+=> 0x100193 <kmain+76>:	int3   
+(gdb) x/10i $pc
+=> 0x100193 <kmain+76>:	int3   
+   0x100194 <kmain+77>:	mov    $0x0,%edx
+   0x100199 <kmain+82>:	mov    $0xe0,%ecx
+   0x10019e <kmain+87>:	mov    $0x12,%eax
+   0x1001a3 <kmain+92>:	mov    %edx,%ebx
+   0x1001a5 <kmain+94>:	div    %ebx
+   0x1001a7 <kmain+96>:	movzbl %cl,%ecx
+   0x1001aa <kmain+99>:	movsbl %al,%edx
+   0x1001ad <kmain+102>:	mov    $0x100f77,%eax
+   0x1001b2 <kmain+107>:	call   0x10009b <vga_write2>
+(gdb) print $esp
+$1 = (void *) 0x104d78
+(gdb) x/xw $esp
+0x104d78:	0x00100f5c
+(gdb) print $cs
+$2 = 8
+(gdb) print $eflags
+$3 = [ ]
+(gdb) print/x $eflags
+$4 = 0x2
+(gdb) stepi
+breakpoint () at idt_entry.S:17
+17	        test %eax, %eax
+1: x/i $pc
+=> 0x1000a9 <breakpoint+1>:	test   %eax,%eax
+(gdb) print $esp
+$5 = (void *) 0x104d6c
+¿Cuantas posiciones avanzo?
+Avanzo 12 posiciones
+(gdb) x/12wx $sp
+0x104d6c:	0x00100194	0x00000008	0x00000002	0x00100f5c
+0x104d7c:	0x00000008	0x00000070	0x00000000	0x00000000
+0x104d8c:	0x00000000	0x00000000	0x00000000	0x00000000
+(gdb) print $eflags
+$6 = [ ]
+(gdb) print/x $eflags
+$7 = 0x2
+(gdb) stepi
+18	        iret
+1: x/i $pc
+=> 0x1000ab <breakpoint+3>:	iret   
+(gdb) print $eflags
+$8 = [ PF ZF ]
+(gdb) print/x $eflags
+$9 = 0x46
+(gdb) stepi
+kmain (mbi=0x9500) at kern2.c:78
+78	    asm("div %4"
+1: x/i $pc
+=> 0x100194 <kmain+77>:	mov    $0x0,%edx
+(gdb) x/10i $pc
+=> 0x100194 <kmain+77>:	mov    $0x0,%edx
+   0x100199 <kmain+82>:	mov    $0xe0,%ecx
+   0x10019e <kmain+87>:	mov    $0x12,%eax
+   0x1001a3 <kmain+92>:	mov    %edx,%ebx
+   0x1001a5 <kmain+94>:	div    %ebx
+   0x1001a7 <kmain+96>:	movzbl %cl,%ecx
+   0x1001aa <kmain+99>:	movsbl %al,%edx
+   0x1001ad <kmain+102>:	mov    $0x100f77,%eax
+   0x1001b2 <kmain+107>:	call   0x10009b <vga_write2>
+   0x1001b7 <kmain+112>:	add    $0x10,%esp
+(gdb) print $esp
+$12 = (void *) 0x104d78
+(gdb) x/xw $esp
+0x104d78:	0x00100f5c
+(gdb) print $cs
+$13 = 8
+(gdb) print $eflags
+$10 = [ ]
+(gdb) print/x $eflags
+$11 = 0x2

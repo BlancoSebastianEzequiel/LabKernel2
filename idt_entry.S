@@ -11,7 +11,8 @@ breakpoint:
 //SESION GDB
 
 //VERSION A
-/*breakpoint:
+/*.globl breakpoint
+breakpoint:
         nop
         test %eax, %eax
         iret
