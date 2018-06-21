@@ -1,0 +1,544 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[scale=1,angle=0,opacity=1,color=black!60]{background}
+\usepackage{tikzpagenodes}
+\usepackage{lastpage}
+\usepackage{lmodern}
+\usepackage{float}
+\usepackage[textwidth=420pt,textheight=630pt]{geometry}
+\setlength{\oddsidemargin}{15.5pt}
+%\usepackage[none]{hyphenat} %no cortar palabras
+
+\usepackage[spanish, activeacute]{babel} %Definir idioma español
+\usepackage[utf8]{inputenc} %Codificacion utf-8
+\backgroundsetup{contents={}} %Saca el 'draft'
+\definecolor{mygray}{rgb}{0.95,0.95,0.95}
+
+\usepackage{listings}
+\lstset{
+    basicstyle=\footnotesize,
+    backgroundcolor=\color{mygray},         
+    breaklines=true,
+    breakatwhitespace=true,   
+    postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},              
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=4,
+    language=C,
+    frame=none,
+	title=\lstname,
+}
+
+\def\labelitemi{$\bullet$}
+
+\begin{document}		
+	% TÍTULO, AUTORES Y FECHA
+	\begin{titlepage}
+		\vspace*{\fill}
+		\begin{center}
+			\Large 75.08 Sistemas Operativos \\
+			\Huge Entrega Kernel 2 \\
+			\bigskip\bigskip\bigskip
+			\large\textbf{Nombre y Apellido:} Sebastián Ezequiel Blanco \\
+			\textbf{Padrón:} 98539 \\
+			\large\textbf{Nombre y Apellido:} Martín Nicolás Pérez \\
+			\textbf{Padrón:} 97378 \\
+			\textbf{Fecha de Entrega:} 22/06/2018\\
+			\textbf{GitHub:} https://github.com/BlancoSebastianEzequiel/LabKernel2\\
+
+		\end{center}
+		\vspace*{\fill}
+	\end{titlepage}
+	\pagenumbering{arabic}
+	\newpage
+			
+	% ÍNDICE
+	\tableofcontents
+	\newpage
+	%\pagenumbering{arabic}
+	
+	\section{Creación de stacks en el kernel}
+		% EJ KERN2 STACK
+		\subsection{Ej: kern2-stack}
+		\begin{itemize}
+			\item \textit{Explicar: ¿qué significa “estar alineado”?\\}
+		Estar alineado significa que nuestro espacio de memoria será
+		múltiplo de un numero que es el que se utiliza para alinear, es decir,
+		que los primeros n bit empezaran en cero.\\\\
+			\item \textit{Mostrar la sintaxis de C/GCC para alinear a 32 bits
+			el arreglo kstack anterior.\\}
+\begin{lstlisting}
+	unsigned char stack1[8192] __attribute__((aligned(32)));
+\end{lstlisting}
+			\item \textit{A qué valor se está inicializando kstack?
+			¿Varía entre la versión C y la versión ASM? (Leer la documentación
+			de as sobre la directiva .space.)\\}
+		Esta inicializado en cero ya que el segundo argumento de space que es
+		fill no es especificado, y en tal caso su valor es cero. Si varia en la
+		version c ya que en esta ultima el valor de la stack en C tiene datos
+		basura\\\\
+			\item \textit{Explicar la diferencia entre las directivas .align y
+			.p2align de as, y mostrar cómo alinear el stack del kernel a 4 KiB
+			usando cada una de ellas.\\}
+		Ambas rellenean el contador de ubicación (en la subsección actual) con
+		un límite de almacenamiento particular. La primera expresión
+		(que debe ser absoluta) es la alineación requerida. La diferencia es que
+		align alinea por el valor que se le pasa y p2align alinea por el valor
+		que se le pasa como potencia de dos, es decir que align 4096 alinea a
+		4Kb y p2align 12 también.\\\\
+			\item \textit{Finalmente: mostrar en una sesión de GDB los valores
+			de esp y eip al entrar en kmain, así como los valores almacenados
+			en el stack en ese momento.\\}
+\begin{lstlisting}[
+	columns=fullflexible,
+	basicstyle=\fontfamily{lmvtt}\selectfont,
+]
+	$ make gdb
+	gdb -q -s kern2 -n -ex 'target remote 127.0.0.1:7508'
+	Leyendo simbolos desde kern2...hecho.
+	Remote debugging using 127.0.0.1:7508
+	0x0000fff0 in ?? ()
+	(gdb) b kmain
+	Punto de interrupcion 1 at 0x100129: file kern2.c, line 62.
+	(gdb) c
+	Continuando.
+
+	Breakpoint 1, kmain (mbi=0x9500) at kern2.c:62
+	62	void kmain(const multiboot_info_t *mbi) {
+	(gdb) p $esp
+	$1 = (void *) 0x104ff4
+	(gdb) p/x $eip
+	$2 = 0x100129
+	(gdb) info frame
+	Stack level 0, frame at 0x104ff8:
+	eip = 0x100129 in kmain (kern2.c:62); saved eip = 0x10002d
+	called by frame at 0x104ffc
+	source language c.
+	Arglist at 0x104ff0, args: mbi=0x9500
+	Locals at 0x104ff0, Previous frame's sp is 0x104ff8
+	Saved registers:
+	eip at 0x104ff4
+\end{lstlisting}
+		\end{itemize}
+		% EJ: KERN2 CMDLINE
+		\subsection{Ej: kern2-cmdline}
+		\begin{itemize}
+			\item \textit{Mostrar cómo implementar la misma concatenación, de
+			manera correcta, usando strncat(3).}
+\begin{lstlisting}
+	char *strncat(char *dest, const char *src, size_t n) {
+		size_t dest_len = strlen(dest);
+		size_t i;
+		for (i = 0 ; i < n && src[i] != '\0' ; i++) {
+			dest[dest_len + i] = src[i];
+		}
+		dest[dest_len + i] = '\0';
+		return dest;
+	}
+\end{lstlisting}
+			\item \textit{Explicar cómo se comporta strlcat(3) si, erróneamente,
+			se declarase buf con tamaño 12. ¿Introduce algún error el código?\\}
+			No introduce error. Esta función recibe un tercer parámetro que es
+			el tamaño máximo que la cadena final tendrá. En este caso, si buf
+			tuviera tamaño 12, no seria un problema porque vemos que como tercer
+			parámetro recibe el tamaño de la cadena destino, mas el tamaño de la
+			cadena fuente mas uno. Entonces como el tamaño máximo es mayor
+			tamaño de la cadena destino, se copia la cadena fuente a la destino.
+			\item \textit{Compilar el siguiente programa, y explicar por qué se
+			imprimen dos líneas distintas, en lugar de la misma dos veces:\\}
+\begin{lstlisting}
+	#include <stdio.h>
+	static void printf_sizeof_buf(char buf[256]) {
+		printf("sizeof buf = %zu\n", sizeof buf);
+	}
+	int main(void) {
+		char buf[256];
+		printf("sizeof buf = %zu\n", sizeof buf);
+		printf_sizeof_buf(buf);
+	}
+\end{lstlisting}
+			Esto es erróneo porque al tener como argumento char buf[256]
+			recibe como parámetro un puntero y a este le aplica el operador
+			size of, lo cual te da como resultado cuanto ocupa un puntero en
+			memoria. Que en general pueden ser 4 u 8 bytes. En cambio, el otro
+			caso funciona porque recibe como parámetro el puntero a un buffer y
+			lo que hace es calcular las distancia entre este puntero y el
+			ultimo caracter. Para que ambos resulten iguales la funcion
+			debiera tener como parametro char* buff solamente.
+		\end{itemize}
+	\section{Concurrencia cooperativa}
+		\subsection{Ej: kern2-swap}
+		\begin{itemize}
+			\item \textit{Explicar, para el stack de cada contador, cuántas
+			posiciones se asignan, y qué representa cada una.\\}
+			En el caso del segundo stack, se pasan los tres argumentos que la
+			función contado\_yield necesita, luego se pasa un puntero a la función
+			exit y luego un puntero a la función contador\_yield. Finalmente se
+			inicializan las cuatro posiciones siguientes donde se guardaran los
+			cuatro registros callee saved. Esto se hace porque cunado se cambia de
+			stack, este retira de la stack dichos registros. Por lo tanto
+			luego de ello apuntaría a contador\_yield.\\
+			Cuando se hace el swap en la función task\_swap y se hace el switch
+			entre stacks, la stack actual apunta a la segunda stack. Le saca los
+			cuatro registros callee saved y queda apuntando a la función
+			contador\_yield. Por lo tanto cuando ejecuta la instrucción ret salta a
+			la función contador\_yield. En caso de que el segundo contador termine
+			antes, cuando termina el loop principal, salta a otra función de retorno
+			que en este caso es la que se guardo antes  y que seria exit.\\
+			En el caso del primer contador solo se guardan los tres parámetros. No
+			es necesario guardar direcciones de retorno ya que es con este stack que
+			se llama a la función, por lo tanto cuando se hace un call a
+			contador\_yield se guarda la dirección de retorno en la cuata posición
+			del stack.
+		\end{itemize}
+	\section{Interrupciones: reloj y teclado}
+		\subsection{Ej: kern2-idt}
+		\begin{itemize}
+			\item \textit{¿Cuántos bytes ocupa una entrada en la IDT?\\}
+			Una entrada en la IDT tiene un tamaño fijo de 8 bytes.\\
+			\item \textit{¿Cuántas entradas como máximo puede albergar la IDT?\\}
+			Como máximo la IDT puede albergar 256 entradas, a estas se las conoce como
+			descriptores.\\
+			\item \textit{¿Cuál es el valor máximo aceptable para el campo limit
+			del registro IDTR?\\}
+			El valor máximo aceptable para el campo limit depende de la cantidad
+			de descriptores válidos
+			requeridos para representar las interrupciones y excepciones que
+			pueden llegar a ocurrir.
+			Debería ser (8*N - 1), expresado en bytes.
+			Siendo N la cantidad de entradas de la IDT, el valor 8 refiere 
+			a el tamaño fijo de las entradas de la tabla.
+			Todos los descriptores vacios deben tener el flag present seteado
+			en 0.\\
+			\item \textit{Indicar qué valor exacto tomará el campo limit para
+			una IDT de 64 descriptores solamente.\\}
+			Con una IDT de 64 descriptores el valor del campo limit será
+			((8 * 64) -1) = 511\\
+			\item \textit{Consultar la sección 6.1 y explicar la diferencia
+			entre interrupciones (§6.3) y excepciones (§6.4).\\}
+			Las interrupciones y las excepciones son eventos externos al
+			procesador son eventos externos
+			al procesador, que requieren la atencion del mismo para ser manejadas.
+
+			A primera vista, las diferencias entre interrupciones y excepciones
+			radican en el origen y finalidad de las mismas.
+
+			Las interrupciones ocurren en momentos randoms de los programas y
+			responden a señales externas al sistema.
+			Estas señales son generadas tanto por el Hardware, por ejemplo para
+			que el procesador responda al pedido del teclado para detectar el
+			ingreso de entrada de datos, o bien por el Software, mediante la
+			ejecución de la instrucción INT.
+
+			Las excepciones ocurren cuando el procesador encuentra un problema
+			en la ejecución de una instrucción, por ejemplo dividir por cero,
+			page faults, violaciones de protección, etc. En las arquitecturas
+			\textit{Machine-Check}, tambien es posible que se generen excepciones
+			generadas por errores internos del Hardware o errores de Bug,
+			llamadas \textit{Machine-Check Exceptions}.\\
+		\end{itemize}
+		\subsection{Ej: kern2-isr}
+			\subsubsection{Sesión de GDB}
+			Se debe seguir el mismo guión dos veces:\\
+\begin{lstlisting}
+.globl breakpoint
+breakpoint:
+	nop
+	test %eax, %eax
+	iret
+\end{lstlisting}
+			\begin{itemize}
+				\item \textit{versión A: usando la implementación aumentada
+				del manejador:}
+% SESION DE GDB VERSION A
+\begin{lstlisting}[
+columns=fullflexible,
+basicstyle=\fontfamily{lmvtt}\selectfont,
+]
+	0x0000fff0 in ?? ()
+	(gdb) display/i $pc
+	1: x/i $pc
+	=> 0xfff0:	add    %al,(%eax)
+	(gdb) b idt_init
+	Punto de interrupcion 1 at 0x100586: file interrupts.c, line 27.
+	(gdb) c
+	Continuando.
+
+	Breakpoint 1, idt_init () at interrupts.c:27
+	27	    idt_install(T_BRKPT, breakpoint);
+	1: x/i $pc
+	=> 0x100586 <idt_init+3>:	push   $0x1000a8
+	(gdb) finish
+	Correr hasta la salida desde #0  idt_init () at interrupts.c:27
+	kmain (mbi=0x9500) at kern2.c:73
+	73	    asm("int3");  // (b)
+	1: x/i $pc
+	=> 0x100193 <kmain+76>:	int3
+	(gdb) x/10i $pc
+	=> 0x100193 <kmain+76>:	int3
+	0x100194 <kmain+77>:	mov    $0x0,%edx
+	0x100199 <kmain+82>:	mov    $0xe0,%ecx
+	0x10019e <kmain+87>:	mov    $0x12,%eax
+	0x1001a3 <kmain+92>:	mov    %edx,%ebx
+	0x1001a5 <kmain+94>:	div    %ebx
+	0x1001a7 <kmain+96>:	movzbl %cl,%ecx
+	0x1001aa <kmain+99>:	movsbl %al,%edx
+	0x1001ad <kmain+102>:	mov    $0x100f77,%eax
+	0x1001b2 <kmain+107>:	call   0x10009b <vga_write2>
+	(gdb) print $esp
+	$1 = (void *) 0x104d78
+	(gdb) x/xw $esp
+	0x104d78:	0x00100f5c
+	(gdb) print $cs
+	$2 = 8
+	(gdb) print $eflags
+	$3 = [ ]
+	(gdb) print/x $eflags
+	$4 = 0x2
+	(gdb) stepi
+	breakpoint () at idt_entry.S:17
+	17	        test %eax, %eax
+	1: x/i $pc
+	=> 0x1000a9 <breakpoint+1>:	test   %eax,%eax
+	(gdb) print $esp
+	$5 = (void *) 0x104d6c
+\end{lstlisting}
+				\item \textit{¿Cuantas posiciones avanzo?}
+				Avanzo 12 posiciones
+\begin{lstlisting}[
+columns=fullflexible,
+basicstyle=\fontfamily{lmvtt}\selectfont,
+]
+	(gdb) x/12wx $sp
+	0x104d6c:	0x00100194	0x00000008	0x00000002	0x00100f5c
+	0x104d7c:	0x00000008	0x00000070	0x00000000	0x00000000
+	0x104d8c:	0x00000000	0x00000000	0x00000000	0x00000000
+	(gdb) print $eflags
+	$6 = [ ]
+	(gdb) print/x $eflags
+	$7 = 0x2
+	(gdb) stepi
+	18	        iret
+	1: x/i $pc
+	=> 0x1000ab <breakpoint+3>:	iret
+	(gdb) print $eflags
+	$8 = [ PF ZF ]
+	(gdb) print/x $eflags
+	$9 = 0x46
+	(gdb) stepi
+	kmain (mbi=0x9500) at kern2.c:78
+	78	    asm("div %4"
+	1: x/i $pc
+	=> 0x100194 <kmain+77>:	mov    $0x0,%edx
+	(gdb) x/10i $pc
+	=> 0x100194 <kmain+77>:	mov    $0x0,%edx
+	0x100199 <kmain+82>:	mov    $0xe0,%ecx
+	0x10019e <kmain+87>:	mov    $0x12,%eax
+	0x1001a3 <kmain+92>:	mov    %edx,%ebx
+	0x1001a5 <kmain+94>:	div    %ebx
+	0x1001a7 <kmain+96>:	movzbl %cl,%ecx
+	0x1001aa <kmain+99>:	movsbl %al,%edx
+	0x1001ad <kmain+102>:	mov    $0x100f77,%eax
+	0x1001b2 <kmain+107>:	call   0x10009b <vga_write2>
+	0x1001b7 <kmain+112>:	add    $0x10,%esp
+	(gdb) print $esp
+	$12 = (void *) 0x104d78
+	(gdb) x/xw $esp
+	0x104d78:	0x00100f5c
+	(gdb) print $cs
+	$13 = 8
+	(gdb) print $eflags
+	$10 = [ ]
+	(gdb) print/x $eflags
+	$11 = 0x2
+\end{lstlisting}
+				\item \textit{Versión B: con el mismo manejador, pero cambiando
+				la instrucción IRET por una instrucción RET.\\}
+\begin{lstlisting}[
+columns=fullflexible,
+basicstyle=\fontfamily{lmvtt}\selectfont,
+]
+	0x0000fff0 in ?? ()
+	(gdb) display/i $pc
+	1: x/i $pc
+	=> 0xfff0:	add    %al,(%eax)
+	(gdb) b idt_init
+	Punto de interrupcion 1 at 0x100586: file interrupts.c, line 27.
+	(gdb) c
+	Continuando.
+
+	Breakpoint 1, idt_init () at interrupts.c:27
+	27	    idt_install(T_BRKPT, breakpoint);
+	1: x/i $pc
+	=> 0x100586 <idt_init+3>:	push   $0x1000a8
+	(gdb) finish
+	Correr hasta la salida desde #0  idt_init () at interrupts.c:27
+	kmain (mbi=0x9500) at kern2.c:73
+	73	    asm("int3");  // (b)
+	1: x/i $pc
+	=> 0x100193 <kmain+76>:	int3
+	(gdb) x/10i $pc
+	=> 0x100193 <kmain+76>:	int3
+	0x100194 <kmain+77>:	mov    $0x0,%edx
+	0x100199 <kmain+82>:	mov    $0xe0,%ecx
+	0x10019e <kmain+87>:	mov    $0x12,%eax
+	0x1001a3 <kmain+92>:	mov    %edx,%ebx
+	0x1001a5 <kmain+94>:	div    %ebx
+	0x1001a7 <kmain+96>:	movzbl %cl,%ecx
+	0x1001aa <kmain+99>:	movsbl %al,%edx
+	0x1001ad <kmain+102>:	mov    $0x100f77,%eax
+	0x1001b2 <kmain+107>:	call   0x10009b <vga_write2>
+	(gdb) print $esp
+	$1 = (void *) 0x104d78
+	(gdb) x/xw $esp
+	0x104d78:	0x00100f5c
+	(gdb) print $cs
+	$2 = 8
+	(gdb) print $eflags
+	$3 = [ ]
+	(gdb) print/x $eflags
+	$4 = 0x2
+	(gdb) stepi
+	breakpoint () at idt_entry.S:26
+	26	        test %eax, %eax
+	1: x/i $pc
+	=> 0x1000a9 <breakpoint+1>:	test   %eax,%eax
+	(gdb) print $esp
+	$5 = (void *) 0x104d6c
+\end{lstlisting}
+				\item \textit{¿Cuantas posiciones avanzo?}
+				Avanzo 12 posiciones
+\begin{lstlisting}[
+columns=fullflexible,
+basicstyle=\fontfamily{lmvtt}\selectfont,
+]
+	(gdb) x/12wx $sp
+	0x104d6c:	0x00100194	0x00000008	0x00000002	0x00100f5c
+	0x104d7c:	0x00000008	0x00000070	0x00000000	0x00000000
+	0x104d8c:	0x00000000	0x00000000	0x00000000	0x00000000
+	(gdb) print $eflags
+	$6 = [ ]
+	(gdb) print/x $eflags
+	$7 = 0x2
+	(gdb) stepi
+	27	        ret
+	1: x/i $pc
+	=> 0x1000ab <breakpoint+3>:	ret
+	(gdb) print $eflags
+	$8 = [ PF ZF ]
+	(gdb) print/x $eflags
+	$9 = 0x46
+	(gdb) stepi
+	kmain (mbi=0x9500) at kern2.c:78
+	78	    asm("div %4"
+	1: x/i $pc
+	=> 0x100194 <kmain+77>:	mov    $0x0,%edx
+	(gdb) x/10i $pc
+	=> 0x100194 <kmain+77>:	mov    $0x0,%edx
+	0x100199 <kmain+82>:	mov    $0xe0,%ecx
+	0x10019e <kmain+87>:	mov    $0x12,%eax
+	0x1001a3 <kmain+92>:	mov    %edx,%ebx
+	0x1001a5 <kmain+94>:	div    %ebx
+	0x1001a7 <kmain+96>:	movzbl %cl,%ecx
+	0x1001aa <kmain+99>:	movsbl %al,%edx
+	0x1001ad <kmain+102>:	mov    $0x100f77,%eax
+	0x1001b2 <kmain+107>:	call   0x10009b <vga_write2>
+	0x1001b7 <kmain+112>:	add    $0x10,%esp
+	(gdb) print $esp
+	$10 = (void *) 0x104d70
+	(gdb) x/xw $esp
+	0x104d70:	0x00000008
+	(gdb) print $cs
+	$11 = 8
+	(gdb) print $eflags
+	$12 = [ PF ZF ]
+	(gdb) print/x $eflags
+	$13 = 0x46
+\end{lstlisting}
+\item \textit{Para cada una de las siguientes maneras de
+				guardar/restaurar registros en breakpoint, indicar si es
+				correcto (en el sentido de hacer su ejecución “invisible”), y
+				justificar por qué:}
+				\begin{itemize}
+					\item Opcion A
+\begin{lstlisting}
+	breakpoint:
+	pusha
+	...
+	call vga_write2
+	popa
+	iret
+\end{lstlisting}
+					\item Opcion B
+\begin{lstlisting}
+	breakpoint:
+	push %eax
+	push %edx
+	push %ecx
+	...
+	call vga_write2
+	pop %ecx
+	pop %edx
+	pop %eax
+	iret
+\end{lstlisting}
+					\item Opcion C
+\begin{lstlisting}
+	breakpoint:
+	push %ebx
+	push %esi
+	push %edi
+	...
+	call vga_write2
+	pop %edi
+	pop %esi
+	pop %ebx
+	iret
+\end{lstlisting}
+\end{itemize}
+					La opcion correcta es la B, ya que al llamar a la funcion,
+					se supone que los registros callee saved, son salvados de
+					manera tal que al volver de la funcion, estos mantienen
+					su valor. En cambio, los registros caller saved no. Por lo
+					tanto, la opcion A hace trabajo de mas al salvar todos los
+					registros y la C no funcionaria ya que salva los registros
+					callee saved que no es necesario ya que de eso se encarga la
+					funcion llamada pero no salva los caller saved y al volver
+					se podria perder si valor.\\
+			\end{itemize}
+		\subsection{Ej: kern2-div}
+		\begin{itemize}
+			Explicar el funcionamiento exacto de la línea asm(\ldots):\\
+\begin{lstlisting}
+	void kmain(const multiboot_info_t *mbi) {
+	int8_t linea;
+	uint8_t color;
+
+	// ...
+
+	idt_init();
+	irq_init();
+
+	asm("div %4"
+	: "=a"(linea), "=c"(color)
+	: "0"(18), "1"(0xE0), "b"(1), "d"(0));
+
+	vga_write2("Funciona vga_write2?", linea, color);
+	}
+
+\end{lstlisting}
+			\item \textit{¿qué cómputo se está realizando?\\}
+			Esta dividiendo \%eax por \%ebx que le asigna el valor uno\\
+			\item \textit{¿de dónde sale el valor de la variable color?\\}
+			El valor se lo asigna en caso de que la division haya sido exitosa
+			y el valor sale del primer registro "1"(0xE0) por eso.\\
+			\item \textit{¿por qué se da valor 0 a \%edx?\\}
+			Se le da valor cero porque el resto de la division se produce entre
+			EDX:EAX y el EBX.\\
+		\end{itemize}
+\end{document}
