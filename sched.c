@@ -23,7 +23,7 @@ void sched_init() {
 // TASK KILL
 //------------------------------------------------------------------------------
 static void task_kill() {
-    current->status = FREE;
+    current->status = DYING;
     sched(NULL);
 }
 //------------------------------------------------------------------------------
@@ -69,6 +69,7 @@ void sched(struct TaskFrame *tf) {
     estado READY. Una posible manera es encontrar en el arreglo la tarea en
     ejecución, y buscar a partir de ahí:
     */
+    enum TaskStatus oldStatus;
     bool foundRunning = false;
     bool foundReady = false;
     int seenCurrent = 0;
@@ -79,6 +80,15 @@ void sched(struct TaskFrame *tf) {
             if (!foundRunning) {
                 foundRunning = true;
                 old = &Tasks[i];
+                oldStatus = READY;
+            }
+        }
+        if (Tasks[i].status == DYING) {
+            seenCurrent++;
+            if (!foundRunning) {
+                foundRunning = true;
+                old = &Tasks[i];
+                oldStatus = FREE;
             }
         }
         if (Tasks[i].status == READY && foundRunning) {
@@ -95,7 +105,7 @@ void sched(struct TaskFrame *tf) {
     cambio, se puede usar el siguiente assembler:
     */
     if (!foundReady) return;
-    old->status = READY;
+    old->status = oldStatus;
     old->frame = tf;
     current = new;
     current->status = RUNNING;
